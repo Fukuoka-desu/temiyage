@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""指定された6列だけで印を判定する。元データは変更しない。"""
+"""指定された7列だけで印を判定する。元データは変更しない。"""
 import csv
 import json
 import re
@@ -37,6 +37,16 @@ RULES = [
     ('business', 'scene', '取引先・目上の人', '税込価格(円)が3000以上で、ジャンルが和菓子・洋菓子・チョコ・茶・コーヒー・酒'),
     ('casual', 'scene', '気軽な相手', '税込価格(円)が2000以下'),
     ('office', 'scene', '職場で配る', '（個包装が有、または品名・内容量に個包装を含む）、かつ（内容量の数が8以上または数量不明）。日持ち(日)が判読できて7未満なら除外。' + QUANTITY_RULE),
+
+    ('summer_fit', 'season', '夏向き', '品名にゼリー|水ようかん|水羊羹|葛|くず|わらび|そうめん|素麺|冷麦|うどん|そば|蕎麦|ビール|ジュース|果汁|サイダー|ラムネを含み、要冷蔵/冷凍が空か常温'),
+    ('summer_caution', 'season', '夏の保存に注意', '日持ち(日)が判読できて7未満、または要冷蔵/冷凍に冷蔵|冷凍|クール便を含む'),
+    ('winter_fit', 'season', '冬向き', 'ジャンルが酒・ご飯のお供・おつまみ、または品名に蒲鉾|かまぼこ|干物|昆布|鍋|そば|蕎麦|うどん|ハムを含む'),
+    ('newyear_fit', 'season', '新年向き', '品名に年賀|干支|紅白|寿|迎春|正月|初春|鏡を含む'),
+    ('short_keep', 'caution', '日持ちが短い', '日持ち(日)が判読できて7未満'),
+    ('alcohol', 'caution', 'お酒', 'ジャンルが酒'),
+    ('flashy', 'caution', '嗜好が分かれやすい', 'ジャンルがおつまみ、またはtalkの印、または品名に珍味を含む'),
+    ('classic_sweets', 'scene', '定番の和洋菓子', 'ジャンルが和菓子・洋菓子でbusinessの印が付く'),
+    ('easy_share', 'scene', '分けやすい', 'bigfamilyまたはofficeの印が付く'),
 ]
 
 
@@ -120,6 +130,26 @@ def mark_item(row):
     put('casual', price is not None and price <= 2000, f'税込価格(円)={price:g}' if price is not None else '')
     wrap_reason = '個包装=有' if wrapped == '有' else '品名に「個包装」' if '個包装' in name else '内容量に「個包装」' if '個包装' in quantity else ''
     put('office', bool(wrap_reason) and (count is None or count >= 8) and (days is None or days >= 7), f'{wrap_reason}・内容量の数={count if count is not None else "不明"}・日持ち(日)={days if days is not None else "不明"}')
+    storage = normalize(row.get('要冷蔵/冷凍', ''))
+    word('summer_fit', 'ゼリー|水ようかん|水羊羹|葛|くず|わらび|そうめん|素麺|冷麦|うどん|そば|蕎麦|ビール|ジュース|果汁|サイダー|ラムネ', storage in {'', '常温'})
+    if 'summer_fit' in marks:
+        marks['summer_fit'] += f'・要冷蔵/冷凍={storage or "空欄"}'
+    put('short_keep', days is not None and days < 7, f'日持ち(日)={days}')
+    cold = re.search('冷蔵|冷凍|クール便', storage)
+    put('summer_caution', 'short_keep' in marks or cold is not None,
+        '・'.join(filter(None, [marks.get('short_keep'), f'要冷蔵/冷凍={storage}' if cold else ''])))
+    if genre in {'酒', 'ご飯のお供', 'おつまみ'}:
+        marks['winter_fit'] = f'ジャンル={genre}'
+    else:
+        word('winter_fit', '蒲鉾|かまぼこ|干物|昆布|鍋|そば|蕎麦|うどん|ハム')
+    word('newyear_fit', '年賀|干支|紅白|寿|迎春|正月|初春|鏡')
+    put('alcohol', genre == '酒', f'ジャンル={genre}')
+    put('flashy', genre == 'おつまみ' or 'talk' in marks or '珍味' in name,
+        f'ジャンル={genre}' if genre == 'おつまみ' else marks.get('talk', '品名に「珍味」'))
+    put('classic_sweets', genre in {'和菓子', '洋菓子'} and 'business' in marks,
+        marks.get('business', ''))
+    share = [f'{key}: {marks[key]}' for key in ('bigfamily', 'office') if key in marks]
+    put('easy_share', bool(share), '・'.join(share))
     return marks
 
 
@@ -131,7 +161,7 @@ def main():
         writer.writerow(['項目ID', 'グループ', '項目', '条件', '根拠の書き方'])
         for key, group, label, rule in RULES:
             writer.writerow([key, group, label, 'NFKC正規化後に判定。' + rule, '一致した列の値・語、読み取れた数量を具体的に記載'])
-    columns = ['都道府県', '品名', 'メーカー', 'ジャンル', '内容量', '個包装', '税込価格(円)', '日持ち(日)']
+    columns = ['都道府県', '品名', 'メーカー', 'ジャンル', '内容量', '個包装', '税込価格(円)', '日持ち(日)', '要冷蔵/冷凍']
     result = {}
     counts = dict.fromkeys([rule[0] for rule in RULES], 0)
     with SOURCE.open(encoding='utf-8-sig', newline='') as source, (out / 'item_marks.csv').open('w', encoding='utf-8', newline='') as file:

@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';
+import assert from "node:assert/strict";
 export function expect(actual) {
   return {
     toBe: (expected) => assert.strictEqual(actual, expected),
@@ -22,8 +22,13 @@ export function expect(actual) {
 const originals = new Map();
 export const vi = {
   stubGlobal(key, value) {
-    if (!originals.has(key)) originals.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
-    Object.defineProperty(globalThis, key, { value, writable: true, configurable: true });
+    if (!originals.has(key))
+      originals.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
+    Object.defineProperty(globalThis, key, {
+      value,
+      writable: true,
+      configurable: true,
+    });
   },
   unstubAllGlobals() {
     for (const [key, descriptor] of originals) {

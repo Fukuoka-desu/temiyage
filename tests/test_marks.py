@@ -53,6 +53,22 @@ class MarkTests(unittest.TestCase):
         self.assertIn('business', marks(ジャンル='茶', **{'税込価格(円)': '3000'}))
         self.assertNotIn('business', marks(ジャンル='茶', **{'税込価格(円)': '2999'}))
 
+    def test_season_and_use_marks(self):
+        self.assertIn('summer_fit', marks(品名='水ようかん', **{'要冷蔵/冷凍': '常温'}))
+        self.assertNotIn('summer_fit', marks(品名='ゼリー', **{'要冷蔵/冷凍': '不明'}))
+        self.assertNotIn('summer_fit', marks(品名='ゼリー', **{'要冷蔵/冷凍': '冷蔵'}))
+        self.assertIn('summer_caution', marks(**{'要冷蔵/冷凍': '夏季クール便'}))
+        self.assertIn('short_keep', marks(**{'日持ち(日)': '6'}))
+        self.assertNotIn('short_keep', marks(**{'日持ち(日)': '不明'}))
+        self.assertNotIn('short_keep', marks(**{'日持ち(日)': '7'}))
+        self.assertIn('winter_fit', marks(品名='昆布'))
+        self.assertIn('newyear_fit', marks(品名='紅白饅頭'))
+        self.assertIn('alcohol', marks(ジャンル='酒'))
+        self.assertIn('flashy', marks(品名='限定セット'))
+        self.assertIn('classic_sweets', marks(ジャンル='和菓子', **{'税込価格(円)': '3000'}))
+        self.assertNotIn('classic_sweets', marks(ジャンル='チョコ', **{'税込価格(円)': '3000'}))
+        self.assertIn('easy_share', marks(内容量='10個'))
+
 
 if __name__ == '__main__':
     unittest.main()

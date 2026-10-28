@@ -10,7 +10,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "node scripts/test.mjs",
-    "marks": "python3 scripts/build_marks.py"
+    "marks": "python3 scripts/build_marks.py",
+    "prebuild": "python3 scripts/build_data.py && python3 scripts/build_marks.py"
   },
   "dependencies": {
     "react": "^18.3.1",
