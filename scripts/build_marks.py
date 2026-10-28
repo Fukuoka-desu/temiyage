@@ -7,7 +7,6 @@ import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = Path('/workspace/temiyage/temiyage_master.csv')
 SWEETS = {'和菓子', '洋菓子', 'チョコ'}
 TEA = '煎茶|緑茶|ほうじ茶|番茶|玉露|紅茶|コーヒー|珈琲|ドリップ|ティーバッグ'
 COOKING = '醤油|しょうゆ|味噌|みそ|だし|出汁|ソース|ドレッシング|ポン酢|ぽん酢|酢|調味|塩|胡椒|こしょう|一味|七味|山椒|唐辛子|麺|そば|蕎麦|うどん|ラーメン|そうめん|素麺|昆布|鰹節|かつお節|干物|カレー'
@@ -39,12 +38,12 @@ RULES = [
     ('office', 'scene', '職場で配る', '（個包装が有、または品名・内容量に個包装を含む）、かつ（内容量の数が8以上または数量不明）。日持ち(日)が判読できて7未満なら除外。' + QUANTITY_RULE),
 
     ('summer_fit', 'season', '夏向き', '品名にゼリー|水ようかん|水羊羹|葛|くず|わらび|そうめん|素麺|冷麦|うどん|そば|蕎麦|ビール|ジュース|果汁|サイダー|ラムネを含み、要冷蔵/冷凍が空か常温'),
-    ('summer_caution', 'season', '夏の保存に注意', '日持ち(日)が判読できて7未満、または要冷蔵/冷凍に冷蔵|冷凍|クール便を含む'),
+    ('summer_caution', 'season', '夏の保存に注意', '日持ち(日)が判読できて7未満、または要冷蔵/冷凍に冷蔵|冷凍|クール便を含む（開封後の保存指示は除外）'),
     ('winter_fit', 'season', '冬向き', 'ジャンルが酒・ご飯のお供・おつまみ、または品名に蒲鉾|かまぼこ|干物|昆布|鍋|そば|蕎麦|うどん|ハムを含む'),
-    ('newyear_fit', 'season', '新年向き', '品名に年賀|干支|紅白|寿|迎春|正月|初春|鏡を含む'),
+    ('newyear_fit', 'season', '新年向き', '品名に年賀|干支|紅白|迎春|正月|初春|鏡を含む'),
     ('short_keep', 'caution', '日持ちが短い', '日持ち(日)が判読できて7未満'),
     ('alcohol', 'caution', 'お酒', 'ジャンルが酒'),
-    ('flashy', 'caution', '嗜好が分かれやすい', 'ジャンルがおつまみ、またはtalkの印、または品名に珍味を含む'),
+    ('flashy', 'caution', '好みが分かれやすい・話題性の強い品', 'ジャンルがおつまみ、またはtalkの印、または品名に珍味を含む'),
     ('classic_sweets', 'scene', '定番の和洋菓子', 'ジャンルが和菓子・洋菓子でbusinessの印が付く'),
     ('easy_share', 'scene', '分けやすい', 'bigfamilyまたはofficeの印が付く'),
 ]
@@ -135,14 +134,15 @@ def mark_item(row):
     if 'summer_fit' in marks:
         marks['summer_fit'] += f'・要冷蔵/冷凍={storage or "空欄"}'
     put('short_keep', days is not None and days < 7, f'日持ち(日)={days}')
-    cold = re.search('冷蔵|冷凍|クール便', storage)
+    shipping_storage = re.sub(r'開封後[^)、;。]*', '', storage)
+    cold = re.search('冷蔵|冷凍|クール便', shipping_storage)
     put('summer_caution', 'short_keep' in marks or cold is not None,
         '・'.join(filter(None, [marks.get('short_keep'), f'要冷蔵/冷凍={storage}' if cold else ''])))
     if genre in {'酒', 'ご飯のお供', 'おつまみ'}:
         marks['winter_fit'] = f'ジャンル={genre}'
     else:
         word('winter_fit', '蒲鉾|かまぼこ|干物|昆布|鍋|そば|蕎麦|うどん|ハム')
-    word('newyear_fit', '年賀|干支|紅白|寿|迎春|正月|初春|鏡')
+    word('newyear_fit', '年賀|干支|紅白|迎春|正月|初春|鏡')
     put('alcohol', genre == '酒', f'ジャンル={genre}')
     put('flashy', genre == 'おつまみ' or 'talk' in marks or '珍味' in name,
         f'ジャンル={genre}' if genre == 'おつまみ' else marks.get('talk', '品名に「珍味」'))
@@ -154,6 +154,8 @@ def mark_item(row):
 
 
 def main():
+    from source_csv import source_csv
+    source_path = source_csv()
     out = ROOT / 'data/marks'
     out.mkdir(parents=True, exist_ok=True)
     with (out / 'mark_rules.csv').open('w', encoding='utf-8', newline='') as file:
@@ -164,7 +166,7 @@ def main():
     columns = ['都道府県', '品名', 'メーカー', 'ジャンル', '内容量', '個包装', '税込価格(円)', '日持ち(日)', '要冷蔵/冷凍']
     result = {}
     counts = dict.fromkeys([rule[0] for rule in RULES], 0)
-    with SOURCE.open(encoding='utf-8-sig', newline='') as source, (out / 'item_marks.csv').open('w', encoding='utf-8', newline='') as file:
+    with source_path.open(encoding='utf-8-sig', newline='') as source, (out / 'item_marks.csv').open('w', encoding='utf-8', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['id', *columns, '印', *[f'{r[2]}の根拠' for r in RULES]])
         for item_id, row in enumerate(csv.DictReader(source), 1):

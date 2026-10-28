@@ -37,7 +37,7 @@ export const markLabels = {
   newyear_fit: "新年向き",
   short_keep: "日持ちが短い",
   alcohol: "お酒",
-  flashy: "嗜好が分かれやすい",
+  flashy: "好みが分かれやすい・話題性の強い品",
   classic_sweets: "定番の和洋菓子",
   easy_share: "分けやすい",
 };

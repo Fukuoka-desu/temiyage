@@ -8,6 +8,7 @@ import {
   defaults as appDefaults,
   filterSort,
   normalize,
+  relaxationOptions,
   scoreItems,
 } from "../.test-build/score.js";
 // 既存の用途別スコアは、贈り手を大阪に明示した条件で検証する。
@@ -132,7 +133,7 @@ describe("実データ・表示絞り込み", () => {
     expect(results.length).toBeGreaterThan(12);
     expect(results.slice(0, 12).every((r) => r.item.v)).toBe(true);
   });
-  it("おすすめ順は低スコアの確認済みを優先し、他の並べ替えでも確認状態を保持する", () => {
+  it("全ての並び順で確認済みが残っているのに要確認が先に出ない", () => {
     const results = scoreItems(
       [
         { ...base, id: 1, v: false, y: 1000, d: 90 },
@@ -144,9 +145,7 @@ describe("実データ・表示絞り込み", () => {
     for (const sort of ["low", "high", "days"]) {
       const sorted = filterSort(results, { ...defaults, sort });
       expect(sorted.find((r) => r.item.id === 1).item.v).toBe(false);
-      expect(sorted.map((r) => r.item.id)).toEqual(
-        sort === "high" ? [2, 1] : [1, 2],
-      );
+      expect(sorted.map((r) => r.item.id)).toEqual([2, 1]);
     }
   });
   it("全角半角とかなを吸収する", () => {
@@ -292,4 +291,21 @@ describe("時期と用途の並び順・注意", () => {
     ).toBe(3);
     expect(scoreItems([base], conditions, marks)[0].cautions).toEqual([]);
   });
+});
+
+it("空白区切りANDはフィールド・入力順を問わず、空白のみは未指定", () => {
+  const results = run({ n: "チョコＡＢＣ", m: "京都メーカー" });
+  for (const q of ["　ちょこabc　", "京都 ﾁｮｺABC", "ﾁｮｺABC 京都", "　 "]) {
+    expect(filterSort(results, { ...defaults, q })).toHaveLength(1);
+  }
+  expect(
+    filterSort(results, { ...defaults, q: "京都 存在しない" }),
+  ).toHaveLength(0);
+});
+it("緩和案は増えるものだけ実件数付きで返す", () => {
+  const c = { ...defaults, fpref: "東京" };
+  const options = relaxationOptions([base], c);
+  expect(options.map((o) => o.label)).toEqual(["産地の指定を解除"]);
+  expect(options[0].count).toBe(1);
+  expect(relaxationOptions([base], { ...c, q: "存在しない" })).toEqual([]);
 });

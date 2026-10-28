@@ -83,3 +83,11 @@ it("旧用途とすべての時期・用途を復元する", () => {
     expect(read(`?season=${season}`).season).toBe(season);
   expect(read("?season=bad").season).toBe("none");
 });
+
+it("URLの苦手指定を優先し、検索語の全角空白を除去する", () => {
+  const c = read(
+    "?nosweet=1&likes=甘いもの,和菓子,洋菓子,チョコレート,日本茶&q=　チョコ　",
+  );
+  expect(c.likes).toEqual(["日本茶"]);
+  expect(c.q).toBe("チョコ");
+});

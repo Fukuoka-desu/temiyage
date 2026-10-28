@@ -1,5 +1,12 @@
 import { isTrait } from "./marks";
-import { defaults, likeTags, seasons, uses, type Conditions } from "./score";
+import {
+  defaults,
+  likeTags,
+  sweetLikes,
+  seasons,
+  uses,
+  type Conditions,
+} from "./score";
 export function readConditions(prefs: string[], genres: string[]): Conditions {
   const p = new URLSearchParams(location.search);
   const c: Conditions = { ...defaults, likes: [...defaults.likes], traits: [] };
@@ -28,7 +35,8 @@ export function readConditions(prefs: string[], genres: string[]): Conditions {
       c.likes = [...new Set(values)];
   }
   c.traits = [...new Set((p.get("traits") ?? "").split(",").filter(isTrait))];
-  c.q = p.get("q") ?? "";
+  if (c.nosweet) c.likes = c.likes.filter((like) => !sweetLikes.includes(like));
+  c.q = (p.get("q") ?? "").trim();
   return c;
 }
 export function writeConditions(c: Conditions) {

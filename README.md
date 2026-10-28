@@ -32,7 +32,7 @@ npm run preview
 ```sh
 npm run data
 # 別の配置のCSVを指定する場合
-python3 scripts/build_data.py /path/to/temiyage_master.csv
+TEMIYAGE_CSV=/path/to/temiyage_master.csv npm run build
 npm run typecheck
 npm test
 npm run build
@@ -53,3 +53,5 @@ URLの`season`と`use`に保存し、旧URLの`use=first`は`visit`へ読み替�
 印は指定された7列だけからルールで生成し、`data/marks/mark_rules.csv`に条件、`item_marks.csv`に各品の根拠を出力します。夏の保存、お詫びの嗜好、お見舞いのお酒や日持ちには黄色の注意を表示します。注意だけでは候補から除外しません。既存の日持ち重視などの絞り込みは適用されます。
 
 確認状態列があれば優先し、なければ判定列で確認済みを判定します。公式URLは表示用にHTTP(S)だけを採用し、無い品はリンクボタンを表示せず「公式ページの情報がありません」と表示します。CSVの値は変更しません。
+
+両生成スクリプトは外部の元CSVがあれば `data/source/temiyage_master.csv` にバイト単位でコピーしてから読みます。無ければこのコピーを使用します。`TEMIYAGE_CSV` で入力を上書きできます。元CSVの値は変更しません。

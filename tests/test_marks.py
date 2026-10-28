@@ -14,6 +14,12 @@ def marks(**values):
 
 
 class MarkTests(unittest.TestCase):
+    def test_review_regressions(self):
+        for storage in ['常温(開封後要冷蔵)', '常温、開封後冷凍']:
+            self.assertNotIn('summer_caution', marks(**{'要冷蔵/冷凍': storage}))
+        self.assertIn('summer_caution', marks(**{'要冷蔵/冷凍': '冷蔵（開封後も冷蔵）'}))
+        self.assertNotIn('newyear_fit', marks(品名='久保田 千寿'))
+
     def test_tea_exclusions(self):
         self.assertNotIn('tea', marks(品名='煎茶のお茶漬け', ジャンル='茶'))
         self.assertNotIn('tea', marks(品名='紅茶クッキー', ジャンル='洋菓子'))

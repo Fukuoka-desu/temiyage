@@ -49,6 +49,19 @@ export function Flower() {
 }
 export function Icon({ kind }: { kind: string }) {
   const paths: Record<string, string> = {
+    none: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM12 3v18M3 12h18",
+    chugen: "M12 2v4M7 6h10l3 9H4l3-9ZM12 15v7l4-2v-4",
+    oseibo: "M12 2v20M3 7l18 10M3 17 21 7M8 4l4 4 4-4M8 20l4-4 4 4",
+    onenga:
+      "M12 9C4-2 0 11 9 12c-12 6 2 15 3 3 4 12 15 1 3-3 12-4 1-16-3-3ZM12 11v2",
+    thanks: "M2 16h5l4 4h7l4-6h-9M7 16v6M12 8c-7-5-3-10 0-5 4-5 8 0 0 5Z",
+    apology: "M4 8c0-6 8-2 8 4C12 6 20 2 20 8s-8 4-8 4M12 12 5 21M12 12l7 9",
+    visit: "M3 3h18v13H9l-6 5V3ZM7 8h10M7 12h6",
+    celebrate:
+      "M12 2v3M3 5l3 3M21 5l-3 3M6 10h12l-3 7H9l-3-7ZM12 17v5M4 16l-2 3M20 16l2 3",
+    mimai: "M12 14C0 13 4 2 12 8c8-6 12 5 0 6ZM12 14v8M12 20l6-4M12 18l-6-3",
+    souvenir: "M3 7h18v14H3zM8 7V3h8v4M7 7v14M17 7v14",
+    office: "M3 10h18v12H3zM3 14h18M9 10v12M15 10v12M7 3h2v3H7zM15 3h2v3h-2z",
     pin: "M12 21S4 13 4 9a8 8 0 0 1 16 0c0 4-8 12-8 12ZM12 6v5",
     calendar: "M4 5h16v16H4zM4 10h16M8 2v6M16 2v6M8 14h2M14 14h2M8 18h2",
     gift: "M4 10h16v11H4zM2 6h20v5H2zM12 6v15M12 6C1 6 7-3 12 6c11 0 5-9 0 0",

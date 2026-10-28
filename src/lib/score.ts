@@ -35,6 +35,7 @@ export const likeTags: Record<string, string[]> = {
   果物: ["果物"],
   家族向け: ["個包装"],
 };
+export const sweetLikes = ["甘いもの", "和菓子", "洋菓子", "チョコレート"];
 export const budgets = {
   b1: [0, 3000],
   b2: [3000, 5000],
@@ -245,15 +246,53 @@ export function filterSort(results: Result[], c: Conditions) {
       ({ item: i }) =>
         (!c.fpref || i.p === c.fpref) &&
         (!c.genre || i.g === c.genre) &&
-        normalize([i.n, i.m, i.p, i.q].join(" ")).includes(normalize(c.q)),
+        normalize(c.q)
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean)
+          .every((word) =>
+            [i.n, i.m, i.p, i.q].some((field) =>
+              normalize(field).includes(word),
+            ),
+          ),
     )
-    .sort((a, b) =>
-      c.sort === "low"
-        ? a.item.y! - b.item.y!
-        : c.sort === "high"
-          ? b.item.y! - a.item.y!
-          : c.sort === "days"
-            ? (b.item.d ?? -1) - (a.item.d ?? -1)
-            : 0,
+    .sort(
+      (a, b) =>
+        Number(b.item.v) - Number(a.item.v) ||
+        (c.sort === "low"
+          ? a.item.y! - b.item.y!
+          : c.sort === "high"
+            ? b.item.y! - a.item.y!
+            : c.sort === "days"
+              ? (b.item.d ?? -1) - (a.item.d ?? -1)
+              : 0),
     );
+}
+
+export function relaxationOptions(items: Item[], c: Conditions) {
+  const keys = Object.keys(budgets) as Conditions["budget"][];
+  const options: [string, Partial<Conditions>][] = [
+    ["産地の指定を解除", { fpref: "" }],
+    ["検索語をクリア", { q: "" }],
+    ["ジャンルを解除", { genre: "" }],
+    ["相手の地元も含める（懐かしい地元の味に切替）", { home: "nostalgic" }],
+    ["好みを解除", { likes: [] }],
+    [
+      "予算を一段上げる",
+      { budget: keys[Math.min(keys.indexOf(c.budget) + 1, 3)] },
+    ],
+    ["日持ち重視を外す", { keep: false }],
+    ["甘いもの苦手を外す", { nosweet: false }],
+  ];
+  const current = filterSort(scoreItems(items, c), c).length;
+  return options
+    .map(([label, patch]) => {
+      const conditions = { ...c, ...patch };
+      return {
+        label,
+        conditions,
+        count: filterSort(scoreItems(items, conditions), conditions).length,
+      };
+    })
+    .filter((option) => option.count > current);
 }

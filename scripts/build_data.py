@@ -8,9 +8,6 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(
-    '/workspace/temiyage/temiyage_master.csv'
-)
 OUTPUT = ROOT / 'src/data/items.json'
 
 
@@ -20,7 +17,9 @@ def number(value):
 
 
 def display_url(value):
-    value = value.strip()
+    value = value.split('|', 1)[0].strip()
+    if re.search(r'\s', value):
+        return ''
     try:
         parsed = urlsplit(value)
         return value if parsed.scheme.lower() in {'http', 'https'} and parsed.netloc else ''
@@ -66,7 +65,9 @@ def convert(row, item_id):
 
 
 def main():
-    with SOURCE.open(encoding='utf-8-sig', newline='') as source:
+    from source_csv import source_csv
+    source_path = source_csv(sys.argv[1] if len(sys.argv) > 1 else None)
+    with source_path.open(encoding='utf-8-sig', newline='') as source:
         items = [convert(row, index) for index, row in enumerate(csv.DictReader(source), 1)]
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(

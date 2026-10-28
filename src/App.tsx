@@ -14,6 +14,8 @@ import {
   filterSort,
   likeTags,
   scoreItems,
+  sweetLikes,
+  relaxationOptions,
   seasons,
   uses,
   type Conditions,
@@ -83,8 +85,38 @@ function App() {
   const resultRef = useRef<HTMLElement>(null);
   const fallbackRef = useRef<HTMLInputElement>(null);
   const results = useMemo(() => filterSort(scoreItems(items, c), c), [c]);
+  const quickRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    quickRef.current
+      ?.querySelectorAll<HTMLElement>(".selected")
+      .forEach((chip) =>
+        chip.scrollIntoView({
+          inline: "nearest",
+          block: "nearest",
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+            .matches
+            ? "auto"
+            : "smooth",
+        }),
+      );
+  }, [c.season, c.use]);
   const update = <K extends keyof Conditions>(key: K, value: Conditions[K]) =>
-    setC((old) => ({ ...old, [key]: value }));
+    setC((old) => {
+      const next = { ...old, [key]: value };
+      if (key === "nosweet" && value) {
+        next.likes = old.likes.filter((like) => !sweetLikes.includes(like));
+        if (next.likes.length !== old.likes.length)
+          setToast("甘いものの好みを外しました");
+      }
+      if (
+        key === "likes" &&
+        next.likes.some(
+          (like) => sweetLikes.includes(like) && !old.likes.includes(like),
+        )
+      )
+        next.nosweet = false;
+      return next;
+    });
   useEffect(() => {
     writeConditions(c);
     setLimit(24);
@@ -200,7 +232,7 @@ function App() {
             </div>
           ))}
         </nav>
-        <div className="mobile-quick">
+        <div className="mobile-quick" ref={quickRef}>
           {(["season", "use"] as const).map((key) => (
             <section key={key}>
               <h2>
@@ -217,7 +249,7 @@ function App() {
                       onClick={() => update(key, value as never)}
                     >
                       {label}
-                      <Icon kind={key === "season" ? "calendar" : "gift"} />
+                      <Icon kind={value} />
                     </button>
                   ),
                 )}
@@ -589,7 +621,7 @@ function App() {
                 <input
                   id="search"
                   type="search"
-                  placeholder="品名・メーカー・土地の名前で探す"
+                  placeholder="スペース区切りで絞り込み（すべて含む）"
                   value={c.q}
                   onChange={(e) => update("q", e.target.value)}
                   aria-label="品名・メーカー・県・内容量で検索"
@@ -640,15 +672,23 @@ function App() {
             <div className="result-toolbar">
               <div className="result-count">
                 <p role="status">
-                  <strong>{results.length}</strong>件中{" "}
-                  <span>
-                    {c.sort === "recommend"
-                      ? "上位から表示"
-                      : `${Math.min(limit, results.length)}件を表示`}
-                  </span>
+                  <strong>{results.length}</strong>件
+                  {results.length > 0 && (
+                    <>
+                      中{" "}
+                      <span>
+                        {c.sort === "recommend"
+                          ? "上位から表示"
+                          : `${Math.min(limit, results.length)}件を表示`}
+                      </span>
+                    </>
+                  )}
                 </p>
                 <small className="price-note">
-                  価格は{confirmationPeriod}の確認時点・税込
+                  価格は
+                  {confirmationDates.map(dateLabel).join("〜") ||
+                    "確認日未記載"}
+                  確認時点・税込
                 </small>
               </div>
             </div>
@@ -745,13 +785,17 @@ function App() {
                             </p>
                           ))}
                           <div className="card-link">
-                            {i.u ? (
+                            {/^https?:\/\/[^\s|]+$/i.test(i.u) ? (
                               <a
                                 href={i.u}
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
-                                公式ページを見る{" "}
+                                {i.src === "公式"
+                                  ? "公式ページを見る"
+                                  : i.src === "百貨店"
+                                    ? "百貨店のページを見る"
+                                    : "販売ページを見る"}{" "}
                                 <span aria-hidden="true">↗</span>
                               </a>
                             ) : (
@@ -783,27 +827,17 @@ function App() {
                   いまの条件で候補は0件です。好み・産地・ジャンル・検索語を減らす、日持ち重視を外す、予算を広げると候補が見つかることがあります。
                 </p>
                 <div>
-                  <button
-                    className="primary"
-                    disabled={c.budget === "b4"}
-                    onClick={() => {
-                      const keys = Object.keys(
-                        budgets,
-                      ) as Conditions["budget"][];
-                      update(
-                        "budget",
-                        keys[Math.min(keys.indexOf(c.budget) + 1, 3)],
-                      );
-                    }}
-                  >
-                    予算を一段上げる
-                  </button>
-                  <button
-                    className="secondary"
-                    onClick={() => update("likes", [])}
-                  >
-                    好みの指定を減らす
-                  </button>
+                  {relaxationOptions(items, c).map(
+                    ({ label, conditions, count }) => (
+                      <button
+                        key={label}
+                        className="secondary"
+                        onClick={() => setC(conditions)}
+                      >
+                        {label}（→{count}件）
+                      </button>
+                    ),
+                  )}
                   <button className="reset" onClick={reset}>
                     条件をリセット
                   </button>

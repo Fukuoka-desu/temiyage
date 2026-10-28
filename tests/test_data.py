@@ -25,3 +25,13 @@ class DataTests(unittest.TestCase):
         for value in ['', '不明', 'ftp://example.com', 'javascript:alert(1)', 'https://']:
             self.assertEqual(module.display_url(value), '')
         self.assertEqual(module.display_url('https://example.com/a'), 'https://example.com/a')
+
+    def test_multiple_real_urls(self):
+        import csv
+        with (Path(__file__).resolve().parents[1] / 'data/source/temiyage_master.csv').open(encoding='utf-8-sig') as source:
+            rows = list(csv.DictReader(source))
+        multiple = [r for r in rows if '|' in r.get('出典URL', '')]
+        self.assertGreaterEqual(len(multiple), 3)
+        for row in multiple[:3]:
+            self.assertEqual(module.convert(row, 1)['u'], row['出典URL'].split('|')[0].strip())
+        self.assertEqual(module.display_url('不明 | https://example.com'), '')
