@@ -1,0 +1,52 @@
+import { afterEach, describe, it } from 'node:test';
+import { expect, vi } from './assert.mjs';
+import { defaults } from '../.test-build/score.js';
+import { readConditions, writeConditions } from '../.test-build/url.js';
+const read = (search) => {
+  vi.stubGlobal('location', { search, pathname: '/gift/', hash: '' });
+  return readConditions(['東京', '大阪', '京都'], ['和菓子', '酒']);
+};
+afterEach(() => vi.unstubAllGlobals());
+describe('共有条件', () => {
+  it('不正値を既定に戻す', () => {
+    expect(read('?pref=不明&mine=不明&home=x&likes=invalid&budget=b0&use=x&sort=x&genre=x&keep=bad')).toEqual(
+      defaults,
+    );
+  });
+  it('空の好みと指定しない土地を保持する', () => {
+    const c = read('?likes=&mine=&fpref=京都&nosweet=1&keep=1');
+    expect(c.likes).toEqual([]);
+    expect(c.mine).toBe('');
+    expect(c.fpref).toBe('京都');
+    expect(c.nosweet && c.keep).toBe(true);
+  });
+  it('すべての条件をURLへ保存して復元する', () => {
+    const c = {
+      pref: '京都',
+      mine: '',
+      home: 'nostalgic',
+      likes: ['日本茶', '家族向け'],
+      nosweet: true,
+      keep: true,
+      budget: 'b3',
+      use: 'office',
+      sort: 'days',
+      fpref: '大阪',
+      genre: '和菓子',
+      q: 'あいう ＡＢＣ',
+    };
+    read('');
+    const replaceState = vi.fn();
+    vi.stubGlobal('history', { replaceState });
+    writeConditions(c);
+    const url = replaceState.mock.calls[0][2];
+    expect(read(new URL(url, 'https://example.com').search)).toEqual(c);
+  });
+  it('既定の条件はクエリを省略する', () => {
+    read('');
+    const replaceState = vi.fn();
+    vi.stubGlobal('history', { replaceState });
+    writeConditions(defaults);
+    expect(replaceState).toHaveBeenCalledWith(null, '', '/gift/');
+  });
+});
