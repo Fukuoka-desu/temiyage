@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import data from "./data/items.json";
+import { Artwork, Emblem, Flower, Icon } from "./Artwork";
 import {
   itemMarks,
   markLabels,
@@ -54,6 +55,17 @@ function dateLabel(value: string) {
 }
 function App() {
   const [c, setC] = useState<Conditions>(() => readConditions(prefs, genres));
+  const [panel, setPanel] = useState("");
+  const conditionsRef = useRef<HTMLDialogElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+  function openPanel(value: string, trigger: HTMLElement) {
+    triggerRef.current = trigger;
+    setPanel(value);
+    conditionsRef.current?.showModal();
+  }
+  function closePanel() {
+    conditionsRef.current?.close();
+  }
   const [limit, setLimit] = useState(24);
   const [desktopTraits, setDesktopTraits] = useState(
     () => window.matchMedia("(min-width: 641px)").matches,
@@ -107,22 +119,6 @@ function App() {
     setC({ ...defaults, likes: [...defaults.likes] });
     setFallback("");
   }
-  const chips = (
-    values: string[],
-    selected: string,
-    onSelect: (value: string) => void,
-  ) =>
-    values.map((value) => (
-      <button
-        type="button"
-        className={`chip ${selected === value ? "selected" : ""}`}
-        aria-pressed={selected === value}
-        key={value}
-        onClick={() => onSelect(value)}
-      >
-        {value}
-      </button>
-    ));
   return (
     <>
       <header className="header">
@@ -131,69 +127,181 @@ function App() {
           href={location.pathname}
           aria-label="手土産えらび ホーム"
         >
-          <img src="./favicon.svg" alt="" width="38" height="38" />
+          <span className="pc-emblem">
+            <Emblem />
+          </span>
+          <span className="sp-emblem">
+            <Emblem gift />
+          </span>
           <span>
-            手土産えらび<small>心をつなぐ、ひと品を。</small>
+            手土産えらび<small>地域の想いを、ちょうどいい贈り物に。</small>
           </span>
         </a>
+        <h1>
+          贈る相手に、ちょうどいい一品を。
+          <span className="header-flower">
+            <Flower />
+          </span>
+        </h1>
         <button className="share-button" onClick={share}>
-          <span aria-hidden="true">↗</span> この条件を共有
+          <Icon kind="share" />
+          この条件を共有
         </button>
       </header>
       <main>
-        <section className="hero">
-          <div className="hero-copy">
-            <p className="eyebrow">贈る気持ちに、ちょうどいい一品。</p>
-            <h1>
-              相手に合う手土産が、
-              <br />
-              すぐ見つかる。
-            </h1>
-            <p className="hero-description">
-              相手のふるさと、好み、贈る時期と場面から。
-              <br className="desktop-break" />
-              全国の名品のなかから、喜ばれる手土産を探しましょう。
-            </p>
-            <div className="stats">
-              <div>
-                <strong>
-                  {items.length}
-                  <span>品</span>
-                </strong>
-                <small>全国の手土産を収録</small>
-              </div>
-              <div>
-                <strong>
-                  {prefectureCount}
-                  <span>都道府県</span>
-                </strong>
-                <small>土地の魅力をお届け</small>
-              </div>
-              <div>
-                <strong>
-                  {verifiedCount}
-                  <span>品</span>
-                </strong>
-                <small>公式・百貨店で価格確認済み</small>
-              </div>
+        <nav className="condition-pills" aria-label="贈り物の条件">
+          {[
+            ["land", "pin", "相手の出身地", c.pref],
+            ["occasion", "calendar", "時期", seasons[c.season]],
+            ["occasion", "gift", "用途", uses[c.use]],
+            [
+              "taste",
+              "star",
+              "相手の趣味",
+              [...c.likes, ...c.traits.map((t) => traitLabels[t])].join("・") ||
+                "指定なし",
+            ],
+            ["budget", "yen", "予算", budgetLabels[c.budget]],
+          ].map(([key, icon, title, value], index) => (
+            <div className="pill-step" key={title}>
+              <button
+                aria-haspopup="dialog"
+                aria-controls="condition-dialog"
+                aria-expanded={
+                  (conditionsRef.current?.open &&
+                    (panel === key || panel === "all")) ||
+                  false
+                }
+                onClick={(e) => openPanel(key, e.currentTarget)}
+              >
+                <span className="pill-title">
+                  <Icon kind={icon} />
+                  {title}
+                </span>
+                <span className="pill-value">
+                  {value}
+                  <span aria-hidden="true">⌄</span>
+                </span>
+                {key === "budget" && (
+                  <span className="range-decoration" aria-hidden="true">
+                    <i
+                      style={{
+                        width: `${(Object.keys(budgets).indexOf(c.budget) + 1) * 25}%`,
+                      }}
+                    />
+                  </span>
+                )}
+              </button>
+              {index < 4 && (
+                <span className="step-arrow" aria-hidden="true">
+                  ›
+                </span>
+              )}
             </div>
-          </div>
-          <div className="hero-art" aria-hidden="true">
-            <span className="art-circle" />
-            <span className="art-sprig">❋</span>
-            <div className="gift gift-back">
-              <i />
-            </div>
-            <div className="gift gift-front">
-              <div className="gift-band" />
-              <div className="gift-knot">結</div>
-              <span>こころばかり</span>
-            </div>
-            <span className="art-caption">選ぶ時間も、贈りもの。</span>
-          </div>
-        </section>
+          ))}
+        </nav>
+        <div className="mobile-quick">
+          {(["season", "use"] as const).map((key) => (
+            <section key={key}>
+              <h2>
+                {key === "season" ? "時期" : "用途"}
+                <span />
+              </h2>
+              <div className="quick-chips">
+                {Object.entries(key === "season" ? seasons : uses).map(
+                  ([value, label]) => (
+                    <button
+                      key={value}
+                      className={`chip ${c[key] === value ? "selected" : ""}`}
+                      aria-pressed={c[key] === value}
+                      onClick={() => update(key, value as never)}
+                    >
+                      {label}
+                      <Icon kind={key === "season" ? "calendar" : "gift"} />
+                    </button>
+                  ),
+                )}
+              </div>
+            </section>
+          ))}
+        </div>
         <div className="workspace">
-          <aside className="conditions">
+          <aside className="selected-conditions">
+            <details open>
+              <summary>
+                <Flower />
+                選んだ条件<span className="fold-icon">⌄</span>
+              </summary>
+              <dl>
+                {[
+                  ["相手の出身地", c.pref],
+                  ["こちらの土地", c.mine || "東京（未指定）"],
+                  [
+                    "地元の扱い",
+                    c.home === "avoid"
+                      ? "地元のものは避ける"
+                      : "懐かしい地元の味",
+                  ],
+                  ["時期", seasons[c.season]],
+                  ["用途", uses[c.use]],
+                  ["相手の趣味", c.likes.join("・") || "指定なし"],
+                  [
+                    "人柄・暮らし",
+                    c.traits.map((t) => traitLabels[t]).join("・") ||
+                      "指定なし",
+                  ],
+                  ["予算", budgetLabels[c.budget]],
+                  [
+                    "関係",
+                    c.rel === "business"
+                      ? "取引先・目上の人"
+                      : c.rel === "casual"
+                        ? "気軽な相手"
+                        : "指定なし",
+                  ],
+                  ["甘いもの", c.nosweet ? "除く" : "含む"],
+                  ["日持ち", c.keep ? "1週間以上（不明を含む）" : "指定なし"],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <button
+                className="edit-conditions"
+                aria-haspopup="dialog"
+                aria-controls="condition-dialog"
+                aria-expanded={panel === "all"}
+                onClick={(e) => openPanel("all", e.currentTarget)}
+              >
+                詳しい条件を変える
+              </button>
+            </details>
+            <button className="primary" onClick={share}>
+              <Icon kind="share" />
+              この条件を共有
+            </button>
+            <p>条件をリンクで共有できます</p>
+          </aside>
+          <dialog
+            id="condition-dialog"
+            ref={conditionsRef}
+            className={`conditions panel-${panel}`}
+            aria-labelledby="condition-title"
+            onCancel={() => setPanel("")}
+            onClose={() => {
+              setPanel("");
+              triggerRef.current?.focus();
+            }}
+          >
+            <div className="dialog-heading">
+              <h2 id="condition-title">贈る相手に合わせる</h2>
+              <button onClick={closePanel} aria-label="条件パネルを閉じる">
+                ×
+              </button>
+            </div>
+
             <details open>
               <summary>
                 <span>
@@ -204,7 +312,7 @@ function App() {
                 </span>
               </summary>
               <div className="condition-body">
-                <section className="form-section">
+                <section className="form-section section-land">
                   <h2>
                     <span>01</span> ふたりの土地
                   </h2>
@@ -249,7 +357,7 @@ function App() {
                     ))}
                   </div>
                 </section>
-                <section className="form-section">
+                <section className="form-section section-taste">
                   <h2>
                     <span>02</span> 好みとこだわり
                   </h2>
@@ -297,7 +405,7 @@ function App() {
                     </label>
                   ))}
                 </section>
-                <section className="form-section">
+                <section className="form-section section-taste">
                   <h2>相手の人柄・暮らし</h2>
                   <p className="small-note">
                     複数選べます。人柄・暮らしに合う品を上位にします（加点）。
@@ -363,11 +471,31 @@ function App() {
                     );
                   })}
                 </section>
-                <section className="form-section">
+                <section className="form-section section-budget">
                   <h2>
                     <span>03</span> ご予算
                   </h2>
-                  <label htmlFor="budget">ご予算（税込）</label>
+                  <label htmlFor="budget-range">
+                    ご予算（税込）：{budgetLabels[c.budget]}
+                  </label>
+                  <input
+                    id="budget-range"
+                    type="range"
+                    min="0"
+                    max="3"
+                    step="1"
+                    value={Object.keys(budgets).indexOf(c.budget)}
+                    aria-valuetext={budgetLabels[c.budget]}
+                    onChange={(e) =>
+                      update(
+                        "budget",
+                        Object.keys(budgets)[
+                          Number(e.target.value)
+                        ] as Conditions["budget"],
+                      )
+                    }
+                  />
+                  <label htmlFor="budget">予算帯を選ぶ</label>
                   <select
                     id="budget"
                     value={c.budget}
@@ -383,7 +511,7 @@ function App() {
                   </select>
                   <p className="small-note">予算に近い品も候補に含めます。</p>
                 </section>
-                <section className="form-section">
+                <section className="form-section section-occasion">
                   <h2>
                     <span>04</span> 贈る時期と場面
                   </h2>
@@ -433,9 +561,7 @@ function App() {
                 </section>
                 <button
                   className="primary mobile-results"
-                  onClick={() =>
-                    resultRef.current?.scrollIntoView({ behavior: "smooth" })
-                  }
+                  onClick={() => closePanel()}
                 >
                   {results.length}件の候補を見る{" "}
                   <span aria-hidden="true">↓</span>
@@ -445,7 +571,7 @@ function App() {
                 </button>
               </div>
             </details>
-          </aside>
+          </dialog>
           <section
             className="results"
             ref={resultRef}
@@ -457,27 +583,9 @@ function App() {
                 <h2>こんな手土産はいかが？</h2>
               </div>
             </div>
-            <p className="condition-summary" aria-live="polite">
-              <strong>いまの条件：</strong>
-              出身地 {c.pref} ／ こちらの土地 {c.mine || "東京（未指定）"} ／
-              地元の扱い {c.home === "avoid" ? "避ける" : "懐かしい味"} ／ 好み{" "}
-              {c.likes.join("・") || "指定なし"} ／ 人柄{" "}
-              {c.traits.map((t) => traitLabels[t]).join("・") || "指定なし"} ／
-              時期 {seasons[c.season]} ／ 用途 {uses[c.use]} ／ 関係{" "}
-              {c.rel === "business"
-                ? "取引先・目上の人"
-                : c.rel === "casual"
-                  ? "気軽な相手"
-                  : "指定しない"}{" "}
-              ／ 予算 {budgetLabels[c.budget]} ／ 甘いもの{" "}
-              {c.nosweet ? "除く" : "含む"} ／ 日持ち{" "}
-              {c.keep ? "1週間以上（不明を含む）" : "指定なし"} ／ 産地{" "}
-              {c.fpref || "すべて"} ／ ジャンル {c.genre || "すべて"} ／ 検索{" "}
-              {c.q || "指定なし"}
-            </p>
             <div className="filter-box">
               <label className="search-label" htmlFor="search">
-                <span aria-hidden="true">⌕</span>
+                <span>キーワード</span>
                 <input
                   id="search"
                   type="search"
@@ -500,33 +608,18 @@ function App() {
                   ))}
                 </select>
               </div>
-              <div className="genre-chips">
-                <span>ジャンル</span>
-                <div className="chips">
-                  <button
-                    className={`chip ${!c.genre ? "selected" : ""}`}
-                    aria-pressed={!c.genre}
-                    onClick={() => update("genre", "")}
-                  >
-                    すべて
-                  </button>
-                  {chips(genres, c.genre, (v) => update("genre", v))}
-                </div>
-              </div>
-            </div>
-            <div className="result-toolbar">
-              <div className="result-count">
-                <p role="status">
-                  <strong>{results.length}</strong>件中{" "}
-                  <span>
-                    {c.sort === "recommend"
-                      ? "上位から表示"
-                      : `${Math.min(limit, results.length)}件を表示`}
-                  </span>
-                </p>
-                <small className="price-note">
-                  価格は{confirmationPeriod}の確認時点・税込
-                </small>
+              <div className="genre-filter">
+                <label htmlFor="genre">ジャンル</label>
+                <select
+                  id="genre"
+                  value={c.genre}
+                  onChange={(e) => update("genre", e.target.value)}
+                >
+                  <option value="">すべて</option>
+                  {genres.map((g) => (
+                    <option key={g}>{g}</option>
+                  ))}
+                </select>
               </div>
               <label htmlFor="sort" className="sort-label">
                 並べ替え
@@ -544,6 +637,21 @@ function App() {
                 </select>
               </label>
             </div>
+            <div className="result-toolbar">
+              <div className="result-count">
+                <p role="status">
+                  <strong>{results.length}</strong>件中{" "}
+                  <span>
+                    {c.sort === "recommend"
+                      ? "上位から表示"
+                      : `${Math.min(limit, results.length)}件を表示`}
+                  </span>
+                </p>
+                <small className="price-note">
+                  価格は{confirmationPeriod}の確認時点・税込
+                </small>
+              </div>
+            </div>
             {results.length > 0 ? (
               <>
                 <div className="card-grid">
@@ -551,94 +659,106 @@ function App() {
                     .slice(0, limit)
                     .map(({ item: i, why, cautions }, index) => (
                       <article className="item-card" key={i.id}>
-                        <div className="card-top">
-                          <span className="region">
-                            {i.p}
-                            <small> / {i.r}</small>
-                          </span>
-                          <span
-                            className={
-                              i.v ? "badge verified" : "badge unverified"
-                            }
-                          >
-                            {i.v ? "価格確認済み" : "要確認"}
-                          </span>
-                        </div>
-                        <div className="card-title">
-                          <span className="item-genre">
-                            {i.g}
-                            {c.sort === "recommend" && index < 3 && (
-                              <span className="rank">
-                                おすすめ {String(index + 1).padStart(2, "0")}
-                              </span>
+                        <div className="card-visual">
+                          <Artwork genre={i.g} />
+                          <div className="card-top">
+                            <span className="region">
+                              {i.p}
+                              <small> / {i.r}</small>
+                            </span>
+                            {!i.v && (
+                              <span className="badge unverified">要確認</span>
                             )}
-                          </span>
-                          <h3>{i.n}</h3>
-                          <p className="maker">{i.m}</p>
-                        </div>
-                        <p className="quantity">
-                          {i.q || "内容量は販売元へご確認ください"}
-                        </p>
-                        <div className="price-specs">
-                          <div className="price">
-                            <strong>
-                              {i.y?.toLocaleString("ja-JP")}
-                              <span>円（税込）</span>
-                            </strong>
-                            <small>{dateLabel(i.c)}確認時点・税込</small>
-                          </div>
-                          <div className="specs">
-                            <span>
-                              {i.d !== null ? `約${i.d}日` : "日持ち要確認"}
-                            </span>
-                            <span>
-                              {i.ko ? "個包装あり" : "個包装なし・不明"}
-                            </span>
-                            {i.st && <span className="cold">{i.st}</span>}
                           </div>
                         </div>
-                        {hasShelfDetails(i) && (
-                          <p className="shelf-note" title={i.dr}>
-                            出典の表記：{i.dr}
+                        <div className="card-content">
+                          {i.v && (
+                            <span className="verified-note">価格確認済み</span>
+                          )}
+                          <div className="card-title">
+                            <span className="item-genre">
+                              {i.g}
+                              {c.sort === "recommend" && index < 3 && (
+                                <span className="rank">
+                                  おすすめ {String(index + 1).padStart(2, "0")}
+                                </span>
+                              )}
+                            </span>
+                            <h3>{i.n}</h3>
+                            <p className="maker">{i.m}</p>
+                          </div>
+                          <p className="quantity">
+                            {i.q || "内容量は販売元へご確認ください"}
                           </p>
-                        )}
-                        {!i.v && (
-                          <p className="verification-note">
-                            価格・販売状況は購入前に販売元へご確認ください
-                          </p>
-                        )}
-                        <div className="reasons">
-                          {why.map((w, j) => (
-                            <span key={j}>{w}</span>
-                          ))}
-                        </div>
-                        <div className="mark-tags" aria-label="品の印">
-                          {(Object.keys(itemMarks[i.id] ?? {}) as Mark[]).map(
-                            (mark) => (
-                              <span key={mark} title={itemMarks[i.id]?.[mark]}>
-                                {markLabels[mark]}
+                          <div className="price-specs">
+                            <div className="price">
+                              <strong>
+                                {i.y?.toLocaleString("ja-JP")}
+                                <span>円（税込）</span>
+                              </strong>
+                              <small>{dateLabel(i.c)}確認時点・税込</small>
+                            </div>
+                            <div className="specs">
+                              <span>
+                                {i.d !== null ? `約${i.d}日` : "日持ち要確認"}
                               </span>
-                            ),
+                              <span>
+                                {i.ko ? "個包装あり" : "個包装なし・不明"}
+                              </span>
+                              {i.st && <span className="cold">{i.st}</span>}
+                            </div>
+                          </div>
+                          {hasShelfDetails(i) && (
+                            <p className="shelf-note" title={i.dr}>
+                              出典の表記：{i.dr}
+                            </p>
                           )}
-                        </div>
-                        {cautions.map((note) => (
-                          <p className="caution-note" key={note}>
-                            注意：{note}
-                          </p>
-                        ))}
-                        <div className="card-link">
-                          {i.u ? (
-                            <a
-                              href={i.u}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              公式ページを見る <span aria-hidden="true">↗</span>
-                            </a>
-                          ) : (
-                            <small>公式ページの情報がありません</small>
+                          {!i.v && (
+                            <p className="verification-note">
+                              価格・販売状況は購入前に販売元へご確認ください
+                            </p>
                           )}
-                          <small>出典：{i.src}</small>
+                          <div className="reasons">
+                            <h4>
+                              <Flower />
+                              おすすめ理由
+                            </h4>
+                            <p>{why.join("・")}</p>
+                          </div>
+                          <div className="mark-tags" aria-label="品の印">
+                            {(Object.keys(itemMarks[i.id] ?? {}) as Mark[])
+                              .filter((mark) =>
+                                c.traits.includes(mark as never),
+                              )
+                              .map((mark) => (
+                                <span
+                                  key={mark}
+                                  title={itemMarks[i.id]?.[mark]}
+                                >
+                                  {markLabels[mark]}
+                                </span>
+                              ))}
+                          </div>
+                          {cautions.map((note) => (
+                            <p className="caution-note" key={note}>
+                              注意：{note}
+                            </p>
+                          ))}
+                          <div className="card-link">
+                            {i.u ? (
+                              <a
+                                href={i.u}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                公式ページを見る{" "}
+                                <span aria-hidden="true">↗</span>
+                              </a>
+                            ) : (
+                              <small>公式ページの情報がありません</small>
+                            )}
+                            <small>出典：{i.src}</small>
+                          </div>
                         </div>
                       </article>
                     ))}
@@ -723,6 +843,21 @@ function App() {
         <p>大切な人へ、気持ちが伝わるひと品を。</p>
         <small>個人情報・アクセス解析データは収集していません。</small>
       </footer>
+      <nav className="mobile-bottom" aria-label="条件と共有">
+        <button
+          aria-haspopup="dialog"
+          aria-controls="condition-dialog"
+          aria-expanded={!!panel && !!conditionsRef.current?.open}
+          onClick={(e) => openPanel("all", e.currentTarget)}
+        >
+          <Icon kind="sliders" />
+          条件を変える
+        </button>
+        <button onClick={share}>
+          <Icon kind="share" />
+          共有
+        </button>
+      </nav>
       {toast && (
         <div className="toast" role="status">
           ✓ {toast}
