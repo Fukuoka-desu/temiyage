@@ -55,3 +55,16 @@ URLの`season`と`use`に保存し、旧URLの`use=first`は`visit`へ読み替�
 確認状態列があれば優先し、なければ判定列で確認済みを判定します。公式URLは表示用にHTTP(S)だけを採用し、無い品はリンクボタンを表示せず「公式ページの情報がありません」と表示します。CSVの値は変更しません。
 
 両生成スクリプトは外部の元CSVがあれば `data/source/temiyage_master.csv` にバイト単位でコピーしてから読みます。無ければこのコピーを使用します。`TEMIYAGE_CSV` で入力を上書きできます。元CSVの値は変更しません。
+
+## 商品画像URLの収集
+
+Python標準ライブラリのみで、公式ページのメタ情報から画像URLを収集します。
+
+```sh
+python3 scripts/fetch_images.py
+python3 scripts/fetch_images.py --resume
+python3 scripts/fetch_images.py --limit 10
+python3 scripts/fetch_images.py --only-ids 1,2,3
+```
+
+入力は `src/data/items.json`、出力は `data/images/item_images.csv` と `data/images/summary.md` です。指定なしでは全品をid昇順で出力し、絞り込み時は対象品のみ出力します。実行ごとに出力を上書きします。`--resume` は保存済みページキャッシュを再利用し、画像の到達確認は再実行します。キャッシュは `data/images/cache/` に保存します。共通画像の判定範囲は実行対象の出典ページです。全体最大6並列、同一ホストは直列かつ最低2.5秒間隔でアクセスします。元データは更新しません。

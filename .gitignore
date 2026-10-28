@@ -3,3 +3,4 @@ dist/
 *.tsbuildinfo
 .npm-cache/
 .test-build/
+data/images/cache/
