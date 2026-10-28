@@ -65,7 +65,9 @@ describe('スコアと除外条件', () => {
   ])
     it(`${use} の用途別スコア`, () => expect(run({}, { use })[0].score).toBe(score));
   it('お詫びのお酒・おつまみの減点と職場の個包装なしを計算する', () => {
-    expect(run({ t: ['お酒', 'おつまみ'], ko: false }, { likes: [], use: 'apology' })[0].score).toBe(5.5);
+    expect(
+      run({ t: ['お酒', 'おつまみ'], ko: false }, { likes: [], use: 'apology' })[0].score,
+    ).toBe(5.5);
     expect(run({ ko: false }, { use: 'office' })[0].score).toBe(10.5);
   });
   it('日持ち重視で30日以上に加点する', () => {
@@ -96,6 +98,21 @@ describe('実データ・表示絞り込み', () => {
     expect(results.length).toBeGreaterThan(12);
     expect(results.slice(0, 12).every((r) => r.item.v)).toBe(true);
   });
+  it('おすすめ順は低スコアの確認済みを優先し、他の並べ替えでも確認状態を保持する', () => {
+    const results = scoreItems(
+      [
+        { ...base, id: 1, v: false, y: 1000, d: 90 },
+        { ...base, id: 2, t: ['和菓子'], ko: false, y: 3000, d: 7 },
+      ],
+      defaults,
+    );
+    expect(filterSort(results, defaults).map((r) => r.item.id)).toEqual([2, 1]);
+    for (const sort of ['low', 'high', 'days']) {
+      const sorted = filterSort(results, { ...defaults, sort });
+      expect(sorted.find((r) => r.item.id === 1).item.v).toBe(false);
+      expect(sorted.map((r) => r.item.id)).toEqual(sort === 'high' ? [2, 1] : [1, 2]);
+    }
+  });
   it('全角半角とかなを吸収する', () => {
     expect(normalize('ﾁｮｺＡＢＣ')).toBe(normalize('ちょこabc'));
     expect(filterSort(run({ n: 'チョコＡＢＣ' }), { ...defaults, q: 'ちょこabc' })).toHaveLength(1);
@@ -109,9 +126,15 @@ describe('実データ・表示絞り込み', () => {
       ],
       defaults,
     );
-    expect(filterSort(results, { ...defaults, sort: 'days' }).map((r) => r.item.id)).toEqual([3, 2, 1]);
-    expect(filterSort(results, { ...defaults, sort: 'low' }).map((r) => r.item.id)).toEqual([1, 2, 3]);
-    expect(filterSort(results, { ...defaults, sort: 'high' }).map((r) => r.item.id)).toEqual([3, 2, 1]);
+    expect(filterSort(results, { ...defaults, sort: 'days' }).map((r) => r.item.id)).toEqual([
+      3, 2, 1,
+    ]);
+    expect(filterSort(results, { ...defaults, sort: 'low' }).map((r) => r.item.id)).toEqual([
+      1, 2, 3,
+    ]);
+    expect(filterSort(results, { ...defaults, sort: 'high' }).map((r) => r.item.id)).toEqual([
+      3, 2, 1,
+    ]);
     expect(filterSort(results, { ...defaults, fpref: '京都' })).toEqual([]);
     expect(filterSort(results, { ...defaults, genre: '酒' })).toEqual([]);
   });

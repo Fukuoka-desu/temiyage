@@ -1,8 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import data from './data/items.json';
-import { budgets, defaults, filterSort, likeTags, scoreItems, type Conditions, type Item } from './lib/score';
+import {
+  budgets,
+  defaults,
+  filterSort,
+  likeTags,
+  scoreItems,
+  type Conditions,
+  type Item,
+} from './lib/score';
 import { readConditions, writeConditions } from './lib/url';
 const items: Item[] = data;
+const prefectureCount = new Set(items.map((i) => i.p)).size;
+const verifiedCount = items.filter((i) => i.v).length;
+const unknownPriceCount = items.filter((i) => i.y === null).length;
+function hasShelfDetails(item: Item) {
+  const raw = item.dr.normalize('NFKC').replace(/\s/g, '');
+  if (!raw) return false;
+  const daysOnly = raw.match(/^(?:約)?(\d+(?:\.\d+)?)(?:日(?:間)?)?$/);
+  return !daysOnly || item.d === null || Number(daysOnly[1]) !== item.d;
+}
 const prefs =
   '北海道 青森 岩手 宮城 秋田 山形 福島 茨城 栃木 群馬 埼玉 千葉 東京 神奈川 新潟 富山 石川 福井 山梨 長野 岐阜 静岡 愛知 三重 滋賀 京都 大阪 兵庫 奈良 和歌山 鳥取 島根 岡山 広島 山口 徳島 香川 愛媛 高知 福岡 佐賀 長崎 熊本 大分 宮崎 鹿児島 沖縄'.split(
     ' ',
@@ -15,7 +32,12 @@ const uses = {
   office: '職場で配る',
   celebrate: 'お祝い',
 };
-const budgetLabels = { b1: '〜3,000円', b2: '3,000〜5,000円', b3: '5,000〜10,000円', b4: '10,000円〜' };
+const budgetLabels = {
+  b1: '〜3,000円',
+  b2: '3,000〜5,000円',
+  b3: '5,000〜10,000円',
+  b4: '10,000円〜',
+};
 function dateLabel(value: string) {
   const m = value.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
   return m ? `${Number(m[2])}月${Number(m[3])}日` : value;
@@ -107,19 +129,22 @@ function App() {
             <div className="stats">
               <div>
                 <strong>
-                  941<span>品</span>
+                  {items.length}
+                  <span>品</span>
                 </strong>
                 <small>全国の手土産を収録</small>
               </div>
               <div>
                 <strong>
-                  47<span>都道府県</span>
+                  {prefectureCount}
+                  <span>都道府県</span>
                 </strong>
                 <small>土地の魅力をお届け</small>
               </div>
               <div>
                 <strong>
-                  850<span>品</span>
+                  {verifiedCount}
+                  <span>品</span>
                 </strong>
                 <small>公式・百貨店で価格確認済み</small>
               </div>
@@ -273,9 +298,6 @@ function App() {
                 <p className="eyebrow">あなたの気持ちを届ける候補</p>
                 <h2>こんな手土産はいかが？</h2>
               </div>
-              <span className="small-seal" aria-hidden="true">
-                心<br />遣
-              </span>
             </div>
             <div className="filter-box">
               <label className="search-label" htmlFor="search">
@@ -291,7 +313,11 @@ function App() {
               </label>
               <div className="filter-pref">
                 <label htmlFor="fpref">産地で絞る</label>
-                <select id="fpref" value={c.fpref} onChange={(e) => update('fpref', e.target.value)}>
+                <select
+                  id="fpref"
+                  value={c.fpref}
+                  onChange={(e) => update('fpref', e.target.value)}
+                >
                   <option value="">すべての都道府県</option>
                   {prefs.map((p) => (
                     <option key={p}>{p}</option>
@@ -313,12 +339,17 @@ function App() {
               </div>
             </div>
             <div className="result-toolbar">
-              <p role="status">
-                <strong>{results.length}</strong>件中{' '}
-                <span>
-                  {c.sort === 'recommend' ? '上位から表示' : `${Math.min(limit, results.length)}件を表示`}
-                </span>
-              </p>
+              <div className="result-count">
+                <p role="status">
+                  <strong>{results.length}</strong>件中{' '}
+                  <span>
+                    {c.sort === 'recommend'
+                      ? '上位から表示'
+                      : `${Math.min(limit, results.length)}件を表示`}
+                  </span>
+                </p>
+                <small className="price-note">価格は10月28日確認時点・税込</small>
+              </div>
               <label htmlFor="sort" className="sort-label">
                 並べ替え
                 <select
@@ -351,32 +382,38 @@ function App() {
                         <span className="item-genre">
                           {i.g}
                           {c.sort === 'recommend' && index < 3 && (
-                            <span className="rank">おすすめ {String(index + 1).padStart(2, '0')}</span>
+                            <span className="rank">
+                              おすすめ {String(index + 1).padStart(2, '0')}
+                            </span>
                           )}
                         </span>
                         <h3>{i.n}</h3>
                         <p className="maker">{i.m}</p>
                       </div>
                       <p className="quantity">{i.q || '内容量は公式ページでご確認ください'}</p>
-                      <div className="price">
-                        <strong>
-                          {i.y?.toLocaleString('ja-JP')}
-                          <span>円（税込）</span>
-                        </strong>
-                        <small>{dateLabel(i.c)}確認時点・税込</small>
+                      <div className="price-specs">
+                        <div className="price">
+                          <strong>
+                            {i.y?.toLocaleString('ja-JP')}
+                            <span>円（税込）</span>
+                          </strong>
+                          <small>{dateLabel(i.c)}確認時点・税込</small>
+                        </div>
+                        <div className="specs">
+                          <span>{i.d !== null ? `約${i.d}日` : '日持ち要確認'}</span>
+                          <span>{i.ko ? '個包装あり' : '個包装なし・不明'}</span>
+                          {i.st && <span className="cold">{i.st}</span>}
+                        </div>
                       </div>
-                      <div className="specs">
-                        <span>{i.d !== null ? `約${i.d}日` : '日持ち要確認'}</span>
-                        <span>{i.ko ? '個包装あり' : '個包装なし・不明'}</span>
-                        {i.st && <span className="cold">{i.st}</span>}
-                      </div>
-                      {i.dr && (
+                      {hasShelfDetails(i) && (
                         <p className="shelf-note" title={i.dr}>
-                          {i.dr}
+                          出典の表記：{i.dr}
                         </p>
                       )}
                       {!i.v && (
-                        <p className="verification-note">価格・販売状況は公式ページでご確認ください</p>
+                        <p className="verification-note">
+                          価格・販売状況は公式ページでご確認ください
+                        </p>
                       )}
                       <div className="reasons">
                         {why.slice(0, 3).map((w, j) => (
@@ -385,7 +422,9 @@ function App() {
                       </div>
                       <div className="card-link">
                         <a
-                          href={/^https?:\/\//.test(i.u) ? i.u : undefined}
+                          href={/^https?:\/\//i.test(i.u) ? i.u : undefined}
+                          role={/^https?:\/\//i.test(i.u) ? undefined : 'link'}
+                          aria-disabled={/^https?:\/\//i.test(i.u) ? undefined : true}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -444,9 +483,14 @@ function App() {
           <div>
             <h2>安心して選ぶために、データについて</h2>
             <p>
-              収録941品（47都道府県、2026年10月28日のWeb調査）。うち850品はメーカー公式・公式通販・百貨店のページで税込価格の一致を確認。それ以外は要確認。価格・内容・日持ちは変わることがあるため、購入前に公式ページでご確認ください。日持ちは出典記載の日数で、製造日・発送日起算などの違いがあります。
+              収録{items.length}品（{prefectureCount}
+              都道府県、2026年10月28日のWeb調査）。うち{verifiedCount}
+              品はメーカー公式・公式通販・百貨店のページで税込価格の一致を確認。それ以外は要確認。価格・内容・日持ちは変わることがあるため、購入前に公式ページでご確認ください。日持ちは出典記載の日数で、製造日・発送日起算などの違いがあります。
             </p>
-            <p>価格不明の53品は候補に表示しません。日持ち不明の品は「日持ち重視」でも含まれます。</p>
+            <p>
+              価格不明の{unknownPriceCount}
+              品は候補に表示しません。日持ち不明の品は「日持ち重視」でも含まれます。
+            </p>
           </div>
         </section>
       </main>

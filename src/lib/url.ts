@@ -19,7 +19,8 @@ export function readConditions(prefs: string[], genres: string[]): Conditions {
   for (const key of ['nosweet', 'keep'] as const) c[key] = p.get(key) === '1';
   if (p.has('likes')) {
     const values = p.get('likes')!.split(',').filter(Boolean);
-    if (values.every((v) => Object.hasOwnProperty.call(likeTags, v))) c.likes = [...new Set(values)];
+    if (values.every((v) => Object.hasOwnProperty.call(likeTags, v)))
+      c.likes = [...new Set(values)];
   }
   c.q = p.get('q') ?? '';
   return c;
@@ -31,8 +32,15 @@ export function writeConditions(c: Conditions) {
     if (JSON.stringify(value) === JSON.stringify(defaults[key])) continue;
     p.set(
       key,
-      Array.isArray(value) ? value.join(',') : typeof value === 'boolean' ? (value ? '1' : '0') : value,
+      Array.isArray(value)
+        ? value.join(',')
+        : typeof value === 'boolean'
+          ? value
+            ? '1'
+            : '0'
+          : value,
     );
   }
-  history.replaceState(null, '', `${location.pathname}${p.size ? '?' + p.toString() : ''}${location.hash}`);
+  const query = p.toString();
+  history.replaceState(null, '', `${location.pathname}${query ? '?' + query : ''}${location.hash}`);
 }

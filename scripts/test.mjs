@@ -8,7 +8,10 @@ try {
     const result = ts.transpileModule(source, {
       compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
     });
-    writeFileSync(new URL(`${file}.js`, out), result.outputText.replace("'./score'", "'./score.js'"));
+    writeFileSync(
+      new URL(`${file}.js`, out),
+      result.outputText.replace(/(['"])\.\/score\1/g, "'./score.js'"),
+    );
   }
   await import('../tests/score.test.mjs');
   await import('../tests/url.test.mjs');
