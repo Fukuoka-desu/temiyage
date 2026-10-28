@@ -1,3 +1,5 @@
+import { itemMarks, traitReason, type Marks, type Trait } from './marks';
+
 export interface Item {
   id: number;
   r: string;
@@ -33,12 +35,19 @@ export const likeTags: Record<string, string[]> = {
   果物: ['果物'],
   家族向け: ['個包装'],
 };
-export const budgets = { b1: [0, 3000], b2: [3000, 5000], b3: [5000, 10000], b4: [10000, Infinity] } as const;
+export const budgets = {
+  b1: [0, 3000],
+  b2: [3000, 5000],
+  b3: [5000, 10000],
+  b4: [10000, Infinity],
+} as const;
 export interface Conditions {
   pref: string;
   mine: string;
   home: 'avoid' | 'nostalgic';
   likes: string[];
+  traits: Trait[];
+  rel: '' | 'business' | 'casual';
   nosweet: boolean;
   keep: boolean;
   budget: keyof typeof budgets;
@@ -50,9 +59,11 @@ export interface Conditions {
 }
 export const defaults: Conditions = {
   pref: '東京',
-  mine: '大阪',
+  mine: '',
   home: 'avoid',
   likes: ['甘いもの'],
+  traits: [],
+  rel: '',
   nosweet: false,
   keep: false,
   budget: 'b1',
@@ -67,12 +78,19 @@ export interface Result {
   score: number;
   why: string[];
 }
-export function scoreItems(items: Item[], c: Conditions): Result[] {
+export function scoreItems(
+  items: Item[],
+  c: Conditions,
+  marks: Marks = itemMarks,
+): Result[] {
   const results: Result[] = [];
   const [lo, hi] = budgets[c.budget];
+  const mine = c.mine || '東京';
   for (const it of items) {
-    const has = (tag: string) => (tag === '個包装' ? it.ko : it.t.includes(tag));
+    const has = (tag: string) =>
+      tag === '個包装' ? it.ko : it.t.includes(tag);
     if (c.nosweet && ['和菓子', '洋菓子', 'チョコ'].some(has)) continue;
+    // 贈り手と相手の土地が同じでも、相手の出身地の除外を優先する。
     if (c.home === 'avoid' && c.pref && it.p === c.pref) continue;
     if (c.keep && it.d !== null && it.d < 7) continue;
     if (it.y === null) continue;
@@ -83,13 +101,16 @@ export function scoreItems(items: Item[], c: Conditions): Result[] {
       if (reason) why.push(reason);
     };
     if (it.y >= lo && it.y <= hi) add(5, '予算内');
-    else if (it.y >= (lo * 80) / 100 && it.y <= (hi * 115) / 100) add(1, '予算に近い');
+    else if (it.y >= (lo * 80) / 100 && it.y <= (hi * 115) / 100)
+      add(1, '予算に近い');
     else continue;
     let hit = 0;
     for (const key of c.likes) {
       if (likeTags[key]?.some(has)) {
         hit++;
-        why.push(key === '家族向け' ? '個包装で分けやすい' : `${key}好きに合う`);
+        why.push(
+          key === '家族向け' ? '個包装で分けやすい' : `${key}好きに合う`,
+        );
       }
     }
     if (c.likes.length && hit === 0) continue;
@@ -110,6 +131,7 @@ export function scoreItems(items: Item[], c: Conditions): Result[] {
       if (has('定番')) add(1);
     }
     if (c.use === 'office') {
+      if (marks[it.id]?.office) add(4, '人数分に分けやすい（個包装・数量）');
       if (has('個包装')) add(4, '人数分に分けやすい');
       else add(-3);
       if (it.d !== null && it.d >= 14) add(1);
@@ -123,15 +145,38 @@ export function scoreItems(items: Item[], c: Conditions): Result[] {
       score += 8;
       why.unshift('相手の地元の懐かしい味');
     }
-    if (c.home === 'avoid' && c.mine && it.p === c.mine) {
+    if (c.home === 'avoid' && it.p === mine) {
       score += 3;
       why.unshift('こちらの土地の名物で話題になる');
     }
+    const priority: string[] = [];
+    const itemMark = marks[it.id] ?? {};
+    for (const trait of c.traits) {
+      const evidence = itemMark[trait];
+      if (evidence) {
+        score += 3;
+        priority.push(traitReason(trait, evidence));
+      }
+    }
+    if (c.rel) {
+      if (itemMark[c.rel]) {
+        score += 3;
+        priority.push(
+          c.rel === 'business'
+            ? '目上の方にも失礼のない価格帯'
+            : '気軽に渡せる価格',
+        );
+      } else score -= c.rel === 'business' ? 2 : 1;
+    }
+    why.unshift(...priority);
     if (it.v) score += 0.5;
     results.push({ item: it, score, why });
   }
   return results.sort(
-    (a, b) => Number(b.item.v) - Number(a.item.v) || b.score - a.score || a.item.y! - b.item.y!,
+    (a, b) =>
+      Number(b.item.v) - Number(a.item.v) ||
+      b.score - a.score ||
+      a.item.y! - b.item.y!,
   );
 }
 export const normalize = (s: string) =>

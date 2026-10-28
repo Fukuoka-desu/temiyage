@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import data from './data/items.json';
+import { traitGroups, traitLabels } from './lib/marks';
 import {
   budgets,
   defaults,
@@ -45,6 +46,16 @@ function dateLabel(value: string) {
 function App() {
   const [c, setC] = useState<Conditions>(() => readConditions(prefs, genres));
   const [limit, setLimit] = useState(24);
+  const [desktopTraits, setDesktopTraits] = useState(
+    () => window.matchMedia('(min-width: 641px)').matches,
+  );
+  const [expandedTraits, setExpandedTraits] = useState<string[]>([]);
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 641px)');
+    const change = () => setDesktopTraits(media.matches);
+    media.addEventListener('change', change);
+    return () => media.removeEventListener('change', change);
+  }, []);
   const [toast, setToast] = useState('');
   const [fallback, setFallback] = useState('');
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -87,7 +98,11 @@ function App() {
     setC({ ...defaults, likes: [...defaults.likes] });
     setFallback('');
   }
-  const chips = (values: string[], selected: string, onSelect: (value: string) => void) =>
+  const chips = (
+    values: string[],
+    selected: string,
+    onSelect: (value: string) => void,
+  ) =>
     values.map((value) => (
       <button
         type="button"
@@ -102,7 +117,11 @@ function App() {
   return (
     <>
       <header className="header">
-        <a className="brand" href={location.pathname} aria-label="手土産えらび ホーム">
+        <a
+          className="brand"
+          href={location.pathname}
+          aria-label="手土産えらび ホーム"
+        >
           <img src="./favicon.svg" alt="" width="38" height="38" />
           <span>
             手土産えらび<small>心をつなぐ、ひと品を。</small>
@@ -181,18 +200,31 @@ function App() {
                     <span>01</span> ふたりの土地
                   </h2>
                   <label htmlFor="pref">相手の出身地</label>
-                  <select id="pref" value={c.pref} onChange={(e) => update('pref', e.target.value)}>
+                  <select
+                    id="pref"
+                    value={c.pref}
+                    onChange={(e) => update('pref', e.target.value)}
+                  >
                     {prefs.map((p) => (
                       <option key={p}>{p}</option>
                     ))}
                   </select>
                   <label htmlFor="mine">こちら（贈る側）の土地</label>
-                  <select id="mine" value={c.mine} onChange={(e) => update('mine', e.target.value)}>
-                    <option value="">指定しない</option>
+                  <select
+                    id="mine"
+                    value={c.mine}
+                    onChange={(e) => update('mine', e.target.value)}
+                  >
+                    <option value="">指定しない（東京として扱う）</option>
                     {prefs.map((p) => (
                       <option key={p}>{p}</option>
                     ))}
                   </select>
+                  {!c.mine && (
+                    <p className="small-note">
+                      未指定のため東京としておすすめしています
+                    </p>
+                  )}
                   <div className="segment" aria-label="地元の品の扱い">
                     {(['avoid', 'nostalgic'] as const).map((v) => (
                       <button
@@ -201,7 +233,9 @@ function App() {
                         className={c.home === v ? 'active' : ''}
                         onClick={() => update('home', v)}
                       >
-                        {v === 'avoid' ? '地元のものは避ける' : '懐かしい地元の味'}
+                        {v === 'avoid'
+                          ? '地元のものは避ける'
+                          : '懐かしい地元の味'}
                       </button>
                     ))}
                   </div>
@@ -222,7 +256,9 @@ function App() {
                         onClick={() =>
                           update(
                             'likes',
-                            c.likes.includes(l) ? c.likes.filter((x) => x !== l) : [...c.likes, l],
+                            c.likes.includes(l)
+                              ? c.likes.filter((x) => x !== l)
+                              : [...c.likes, l],
                           )
                         }
                       >
@@ -230,7 +266,9 @@ function App() {
                       </button>
                     ))}
                   </div>
-                  <p className="small-note">選んだ好みのいずれかに合う品を表示します。</p>
+                  <p className="small-note">
+                    好みはいずれかに合う品だけ表示します（OR・絞り込み）。
+                  </p>
                   {(['nosweet', 'keep'] as const).map((key) => (
                     <label className="toggle-row" key={key}>
                       <span>
@@ -251,6 +289,72 @@ function App() {
                   ))}
                 </section>
                 <section className="form-section">
+                  <h2>相手の人柄・暮らし</h2>
+                  <p className="small-note">
+                    複数選べます。人柄・暮らしに合う品を上位にします（加点）。
+                  </p>
+                  {traitGroups.map((group) => {
+                    const open =
+                      desktopTraits || expandedTraits.includes(group.id);
+                    const count = group.traits.filter((trait) =>
+                      c.traits.includes(trait),
+                    ).length;
+                    return (
+                      <div className="trait-group" key={group.id}>
+                        <h3>
+                          <button
+                            type="button"
+                            aria-expanded={open}
+                            aria-controls={`traits-${group.id}`}
+                            disabled={desktopTraits}
+                            onClick={() =>
+                              setExpandedTraits((old) =>
+                                old.includes(group.id)
+                                  ? old.filter((id) => id !== group.id)
+                                  : [...old, group.id],
+                              )
+                            }
+                          >
+                            {group.label}
+                            <span
+                              className="trait-count"
+                              aria-label={`${count}項目選択中`}
+                            >
+                              {count}
+                            </span>
+                          </button>
+                        </h3>
+                        <div
+                          className="chips"
+                          id={`traits-${group.id}`}
+                          hidden={!open}
+                        >
+                          {group.traits.map((trait) => (
+                            <button
+                              type="button"
+                              key={trait}
+                              className={`chip ${c.traits.includes(trait) ? 'selected' : ''}`}
+                              aria-pressed={c.traits.includes(trait)}
+                              onClick={() =>
+                                update(
+                                  'traits',
+                                  c.traits.includes(trait)
+                                    ? c.traits.filter(
+                                        (value) => value !== trait,
+                                      )
+                                    : [...c.traits, trait],
+                                )
+                              }
+                            >
+                              {traitLabels[trait]}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </section>
+                <section className="form-section">
                   <h2>
                     <span>03</span> ご予算とシーン
                   </h2>
@@ -258,7 +362,9 @@ function App() {
                   <select
                     id="budget"
                     value={c.budget}
-                    onChange={(e) => update('budget', e.target.value as Conditions['budget'])}
+                    onChange={(e) =>
+                      update('budget', e.target.value as Conditions['budget'])
+                    }
                   >
                     {Object.entries(budgetLabels).map(([k, v]) => (
                       <option key={k} value={k}>
@@ -267,11 +373,25 @@ function App() {
                     ))}
                   </select>
                   <p className="small-note">予算に近い品も候補に含めます。</p>
-                  <label htmlFor="use">お渡しするシーン</label>
+                  <label htmlFor="rel">相手との関係</label>
+                  <select
+                    id="rel"
+                    value={c.rel}
+                    onChange={(e) =>
+                      update('rel', e.target.value as Conditions['rel'])
+                    }
+                  >
+                    <option value="">指定しない</option>
+                    <option value="business">取引先・目上の人</option>
+                    <option value="casual">気軽な相手</option>
+                  </select>
+                  <label htmlFor="use">用途</label>
                   <select
                     id="use"
                     value={c.use}
-                    onChange={(e) => update('use', e.target.value as Conditions['use'])}
+                    onChange={(e) =>
+                      update('use', e.target.value as Conditions['use'])
+                    }
                   >
                     {Object.entries(uses).map(([k, v]) => (
                       <option key={k} value={k}>
@@ -282,9 +402,12 @@ function App() {
                 </section>
                 <button
                   className="primary mobile-results"
-                  onClick={() => resultRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                  onClick={() =>
+                    resultRef.current?.scrollIntoView({ behavior: 'smooth' })
+                  }
                 >
-                  {results.length}件の候補を見る <span aria-hidden="true">↓</span>
+                  {results.length}件の候補を見る{' '}
+                  <span aria-hidden="true">↓</span>
                 </button>
                 <button className="reset" onClick={reset}>
                   ↺ 条件をリセット
@@ -292,7 +415,11 @@ function App() {
               </div>
             </details>
           </aside>
-          <section className="results" ref={resultRef} aria-label="手土産の候補">
+          <section
+            className="results"
+            ref={resultRef}
+            aria-label="手土産の候補"
+          >
             <div className="results-heading">
               <div>
                 <p className="eyebrow">あなたの気持ちを届ける候補</p>
@@ -348,14 +475,18 @@ function App() {
                       : `${Math.min(limit, results.length)}件を表示`}
                   </span>
                 </p>
-                <small className="price-note">価格は10月28日確認時点・税込</small>
+                <small className="price-note">
+                  価格は10月28日確認時点・税込
+                </small>
               </div>
               <label htmlFor="sort" className="sort-label">
                 並べ替え
                 <select
                   id="sort"
                   value={c.sort}
-                  onChange={(e) => update('sort', e.target.value as Conditions['sort'])}
+                  onChange={(e) =>
+                    update('sort', e.target.value as Conditions['sort'])
+                  }
                 >
                   <option value="recommend">おすすめ順</option>
                   <option value="low">価格の安い順</option>
@@ -374,7 +505,11 @@ function App() {
                           {i.p}
                           <small> / {i.r}</small>
                         </span>
-                        <span className={i.v ? 'badge verified' : 'badge unverified'}>
+                        <span
+                          className={
+                            i.v ? 'badge verified' : 'badge unverified'
+                          }
+                        >
                           {i.v ? '価格確認済み' : '要確認'}
                         </span>
                       </div>
@@ -390,7 +525,9 @@ function App() {
                         <h3>{i.n}</h3>
                         <p className="maker">{i.m}</p>
                       </div>
-                      <p className="quantity">{i.q || '内容量は公式ページでご確認ください'}</p>
+                      <p className="quantity">
+                        {i.q || '内容量は公式ページでご確認ください'}
+                      </p>
                       <div className="price-specs">
                         <div className="price">
                           <strong>
@@ -400,8 +537,12 @@ function App() {
                           <small>{dateLabel(i.c)}確認時点・税込</small>
                         </div>
                         <div className="specs">
-                          <span>{i.d !== null ? `約${i.d}日` : '日持ち要確認'}</span>
-                          <span>{i.ko ? '個包装あり' : '個包装なし・不明'}</span>
+                          <span>
+                            {i.d !== null ? `約${i.d}日` : '日持ち要確認'}
+                          </span>
+                          <span>
+                            {i.ko ? '個包装あり' : '個包装なし・不明'}
+                          </span>
                           {i.st && <span className="cold">{i.st}</span>}
                         </div>
                       </div>
@@ -424,7 +565,9 @@ function App() {
                         <a
                           href={/^https?:\/\//i.test(i.u) ? i.u : undefined}
                           role={/^https?:\/\//i.test(i.u) ? undefined : 'link'}
-                          aria-disabled={/^https?:\/\//i.test(i.u) ? undefined : true}
+                          aria-disabled={
+                            /^https?:\/\//i.test(i.u) ? undefined : true
+                          }
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -441,7 +584,8 @@ function App() {
                       もっと見る <span aria-hidden="true">＋</span>
                     </button>
                     <small>
-                      {Math.min(limit, results.length)} / {results.length} 件を表示中
+                      {Math.min(limit, results.length)} / {results.length}{' '}
+                      件を表示中
                     </small>
                   </div>
                 )}
@@ -450,19 +594,29 @@ function App() {
               <div className="empty">
                 <span aria-hidden="true">◇</span>
                 <h3>ぴったりの品を、もう少し広く。</h3>
-                <p>条件を少しゆるめると、新しい候補に出会えるかもしれません。</p>
+                <p>
+                  条件を少しゆるめると、新しい候補に出会えるかもしれません。
+                </p>
                 <div>
                   <button
                     className="primary"
                     disabled={c.budget === 'b4'}
                     onClick={() => {
-                      const keys = Object.keys(budgets) as Conditions['budget'][];
-                      update('budget', keys[Math.min(keys.indexOf(c.budget) + 1, 3)]);
+                      const keys = Object.keys(
+                        budgets,
+                      ) as Conditions['budget'][];
+                      update(
+                        'budget',
+                        keys[Math.min(keys.indexOf(c.budget) + 1, 3)],
+                      );
                     }}
                   >
                     予算を一段上げる
                   </button>
-                  <button className="secondary" onClick={() => update('likes', [])}>
+                  <button
+                    className="secondary"
+                    onClick={() => update('likes', [])}
+                  >
                     好みの指定を減らす
                   </button>
                   <button className="reset" onClick={reset}>
@@ -495,6 +649,9 @@ function App() {
         </section>
       </main>
       <footer>
+        <p>
+          人柄・暮らしの印は品名・ジャンル・内容量・個包装・価格・日持ちから決めたルールで付けています（パッケージの見た目など品名から分からないものには付けていません）。
+        </p>
         <a className="footer-brand" href={location.pathname}>
           手土産えらび
         </a>

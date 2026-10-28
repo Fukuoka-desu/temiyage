@@ -1,7 +1,7 @@
 :root {
   font-family:
-    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic UI', 'Meiryo',
-    system-ui, sans-serif;
+    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP',
+    'Yu Gothic UI', 'Meiryo', system-ui, sans-serif;
   color: #302e29;
   background: #faf7f2;
   font-synthesis: none;
@@ -1013,7 +1013,13 @@ footer small {
     transform: rotate(-10deg);
     width: 232px;
     height: 151px;
-    background: repeating-linear-gradient(0deg, #faf3e5 0px, #faf3e5 3px, #f5eddd 3px, #f5eddd 4px);
+    background: repeating-linear-gradient(
+      0deg,
+      #faf3e5 0px,
+      #faf3e5 3px,
+      #f5eddd 3px,
+      #f5eddd 4px
+    );
     border: 1px solid #e2d2b7;
     border-radius: 3px;
   }
@@ -1294,4 +1300,36 @@ footer small {
   .card-link small {
     margin-top: 5px;
   }
+}
+
+.trait-group {
+  margin-top: 16px;
+}
+.trait-group h3 {
+  margin: 0 0 10px;
+}
+.trait-group h3 button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 8px 0;
+  font-size: 12px;
+  text-align: left;
+}
+.trait-group h3 button:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.trait-count {
+  border-radius: 12px;
+  background: #f0ebe3;
+  padding: 2px 8px;
+  color: var(--accent);
+}
+.trait-group .chips[hidden] {
+  display: none;
 }
