@@ -309,3 +309,32 @@ it("緩和案は増えるものだけ実件数付きで返す", () => {
   expect(options[0].count).toBe(1);
   expect(relaxationOptions([base], { ...c, q: "存在しない" })).toEqual([]);
 });
+
+it("指定しないは予算理由を付けず、不明価格は全並び順で価格ありのあと", () => {
+  const items = [
+    { ...base, id: 1, y: null, v: true },
+    { ...base, id: 2, y: 50000, v: false },
+    { ...base, id: 3, y: null, v: false },
+    { ...base, id: 4, y: 2000, v: true },
+  ];
+  for (const sort of ["low", "high", "recommend", "days"]) {
+    const c = { ...defaults, budget: "any", sort };
+    const result = filterSort(scoreItems(items, c, {}), c);
+    expect(result.map((r) => r.item.id)).toEqual([4, 2, 1, 3]);
+    expect(result.every((r) => Number.isFinite(r.score))).toBe(true);
+    expect(
+      result.every((r) => !r.why.some((why) => why.includes("予算"))),
+    ).toBe(true);
+  }
+});
+it("b4とanyの0件緩和は予算を下げず、価格不明の追加を提案できる", () => {
+  for (const budget of ["b4", "any"]) {
+    const c = { ...defaults, budget };
+    const options = relaxationOptions([{ ...base, y: null }], c);
+    expect(options.some((o) => o.label === "予算を一段上げる")).toBe(false);
+    if (budget === "b4")
+      expect(options.some((o) => o.label === "価格不明の品も含める")).toBe(
+        true,
+      );
+  }
+});

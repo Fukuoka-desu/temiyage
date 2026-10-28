@@ -41,6 +41,7 @@ export const budgets = {
   b2: [3000, 5000],
   b3: [5000, 10000],
   b4: [10000, Infinity],
+  any: [0, Infinity],
 } as const;
 export const seasons = {
   none: "季節を問わない",
@@ -66,6 +67,7 @@ export interface Conditions {
   rel: "" | "business" | "casual";
   nosweet: boolean;
   keep: boolean;
+  pu: boolean;
   budget: keyof typeof budgets;
   season: keyof typeof seasons;
   use: keyof typeof uses;
@@ -83,6 +85,7 @@ export const defaults: Conditions = {
   rel: "",
   nosweet: false,
   keep: false,
+  pu: false,
   budget: "b1",
   season: "none",
   use: "visit",
@@ -112,7 +115,7 @@ export function scoreItems(
     // 贈り手と相手の土地が同じでも、相手の出身地の除外を優先する。
     if (c.home === "avoid" && c.pref && it.p === c.pref) continue;
     if (c.keep && it.d !== null && it.d < 7) continue;
-    if (it.y === null) continue;
+    if (it.y === null && c.budget !== "any" && !c.pu) continue;
     let score = 0;
     const why: string[] = [];
     const cautions: string[] = [];
@@ -121,10 +124,12 @@ export function scoreItems(
       score += n;
       if (reason) why.push(reason);
     };
-    if (it.y >= lo && it.y <= hi) add(5, "予算内");
-    else if (it.y >= (lo * 80) / 100 && it.y <= (hi * 115) / 100)
-      add(1, "予算に近い");
-    else continue;
+    if (c.budget !== "any" && it.y !== null) {
+      if (it.y >= lo && it.y <= hi) add(5, "予算内");
+      else if (it.y >= (lo * 80) / 100 && it.y <= (hi * 115) / 100)
+        add(1, "予算に近い");
+      else continue;
+    }
     let hit = 0;
     for (const key of c.likes) {
       if (likeTags[key]?.some(has)) {
@@ -194,7 +199,7 @@ export function scoreItems(
     if (c.use === "souvenir") {
       if (itemMark.easy_share) add(2, "みんなで分けやすい");
       if (it.d !== null && it.d >= 7) add(1);
-      if (it.y <= 3000) add(1);
+      if (it.y !== null && it.y <= 3000) add(1);
     }
     if (c.use === "office" && itemMark.short_keep) add(-2);
     if (c.keep && it.d !== null && it.d >= 30) add(2, "日持ちする");
@@ -230,9 +235,10 @@ export function scoreItems(
   }
   return results.sort(
     (a, b) =>
+      Number(a.item.y === null) - Number(b.item.y === null) ||
       Number(b.item.v) - Number(a.item.v) ||
       b.score - a.score ||
-      a.item.y! - b.item.y!,
+      (a.item.y ?? 0) - (b.item.y ?? 0),
   );
 }
 export const normalize = (s: string) =>
@@ -258,11 +264,12 @@ export function filterSort(results: Result[], c: Conditions) {
     )
     .sort(
       (a, b) =>
+        Number(a.item.y === null) - Number(b.item.y === null) ||
         Number(b.item.v) - Number(a.item.v) ||
         (c.sort === "low"
-          ? a.item.y! - b.item.y!
+          ? (a.item.y ?? 0) - (b.item.y ?? 0)
           : c.sort === "high"
-            ? b.item.y! - a.item.y!
+            ? (b.item.y ?? 0) - (a.item.y ?? 0)
             : c.sort === "days"
               ? (b.item.d ?? -1) - (a.item.d ?? -1)
               : 0),
@@ -270,7 +277,7 @@ export function filterSort(results: Result[], c: Conditions) {
 }
 
 export function relaxationOptions(items: Item[], c: Conditions) {
-  const keys = Object.keys(budgets) as Conditions["budget"][];
+  const keys = ["b1", "b2", "b3", "b4"] as const;
   const options: [string, Partial<Conditions>][] = [
     ["産地の指定を解除", { fpref: "" }],
     ["検索語をクリア", { q: "" }],
@@ -279,8 +286,14 @@ export function relaxationOptions(items: Item[], c: Conditions) {
     ["好みを解除", { likes: [] }],
     [
       "予算を一段上げる",
-      { budget: keys[Math.min(keys.indexOf(c.budget) + 1, 3)] },
+      {
+        budget:
+          c.budget === "any"
+            ? "any"
+            : keys[Math.min(keys.indexOf(c.budget) + 1, keys.length - 1)],
+      },
     ],
+    ["価格不明の品も含める", { pu: true }],
     ["日持ち重視を外す", { keep: false }],
     ["甘いもの苦手を外す", { nosweet: false }],
   ];

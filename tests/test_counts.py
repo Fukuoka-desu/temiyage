@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ITEMS = json.loads((ROOT / 'src/data/items.json').read_text())
 MARKS = json.loads((ROOT / 'src/data/marks.json').read_text())
 DEFAULT = dict(pref='東京', mine='', home='avoid', likes=['甘いもの'], traits=[], rel='',
-               nosweet=False, keep=False, budget='b1', season='none', use='visit',
+               nosweet=False, keep=False, pu=False, budget='b1', season='none', use='visit',
                sort='recommend', fpref='', genre='', q='')
 LIKES = {'甘いもの': ['和菓子', '洋菓子', 'チョコ'], '和菓子': ['和菓子'],
          '洋菓子': ['洋菓子'], 'チョコレート': ['チョコ'], 'お酒': ['お酒'],
@@ -29,13 +29,16 @@ def norm(text):
 
 def eligible(c):
     low, high = {'b1': (0, 3450), 'b2': (2400, 5750),
-                 'b3': (4000, 11500), 'b4': (8000, float('inf'))}[c['budget']]
+                 'b3': (4000, 11500), 'b4': (8000, float('inf')), 'any': (0, float('inf'))}[c['budget']]
     selected = []
     for i in ITEMS:
         tags = set(i['t']) - {'個包装'}
         if i['ko']:
             tags.add('個包装')
-        if i['y'] is None or not low <= i['y'] <= high:
+        if i['y'] is None:
+            if c['budget'] != 'any' and not c['pu']:
+                continue
+        elif not low <= i['y'] <= high:
             continue
         if c['home'] == 'avoid' and i['p'] == c['pref']:
             continue
@@ -75,6 +78,13 @@ def cases():
             ('日持ち重視', {'keep': True})]
     for budget in ['b1', 'b2', 'b3', 'b4']:
         out.append((f'予算{budget} 境界含む', dict(budget=budget, likes=[], home='nostalgic')))
+    out += [('予算any 既定条件', {'budget': 'any'}),
+            ('予算any 好みなし', {'budget': 'any', 'likes': []}),
+            ('予算any 好みなし 全候補', {'budget': 'any', 'likes': [], 'home': 'nostalgic'}),
+            ('b1 価格不明も含む', {'pu': True}),
+            ('共有any pu', {'budget': 'any', 'pu': True})]
+    for sort in ['low', 'high', 'recommend', 'days']:
+        out.append((f'any 末尾確認 {sort}', {'budget': 'any', 'likes': [], 'sort': sort}))
     for label, patch in [
         ('産地京都', {'fpref': '京都'}), ('ジャンル和菓子', {'genre': '和菓子'}),
         ('半角検索', {'q': 'ﾁｮｺ'}), ('全角検索', {'q': 'チョコ'}), ('ひらがな検索', {'q': 'ちょこ'}),
@@ -99,7 +109,7 @@ class CountTests(unittest.TestCase):
         actual = json.loads(subprocess.check_output(['node', 'tests/count_actual.mjs'], cwd=ROOT,
                                                    input=json.dumps(tests).encode()))
         report = ['# 件数比較', '', '期待値: items.json・marks.jsonへの独立した単純フィルタ。実際値: Nodeでsrc/libを実行。',
-                  '予算は境界を含み、既存の近似予算（下限80%〜上限115%）も含む。', '',
+                  '予算帯は境界・近似予算（下限80%〜上限115%）を含む。anyは価格制限なし・不明も含む。pu=1は予算帯に価格不明を追加。', '',
                   '|条件|期待|実際|一致|', '|---|---:|---:|:---:|']
         failures = []
         for test, a in zip(tests, actual):
@@ -119,10 +129,27 @@ class CountTests(unittest.TestCase):
                 warning_ids = {i['id'] for i in expected if warnings(i, c)}
                 self.assertEqual(set(a['cautionIds']), warning_ids)
                 self.assertEqual(a['cautionTotal'], sum(warnings(i, c) for i in expected))
-                verified = sum(i['v'] for i in expected)
+                priced = [i for i in expected if i['y'] is not None]
+                verified = sum(i['v'] for i in priced)
                 n = min(24, verified)
                 by_id = {i['id']: i for i in [*ITEMS, *expected]}
                 self.assertTrue(all(by_id[i]['v'] for i in a['ids'][:n]))
+                unknown_ids = {i['id'] for i in expected if i['y'] is None}
+                self.assertEqual(set(a['ids'][len(priced):]), unknown_ids)
+                for group in [a['ids'][:len(priced)], a['ids'][len(priced):]]:
+                    flags = [by_id[i]['v'] for i in group]
+                    self.assertEqual(flags, sorted(flags, reverse=True))
+                self.assertEqual(a['restored']['budget'], c['budget'])
+                self.assertEqual(a['restored']['pu'], c['pu'])
+                if c['budget'] == 'b1' and not c['pu']:
+                    self.assertFalse(unknown_ids)
+                if test['label'] == 'b1 価格不明も含む':
+                    self.assertEqual(a['count'], len(eligible(DEFAULT)) + len(unknown_ids))
+                if test['label'] == '予算any 好みなし 全候補':
+                    self.assertEqual(len(unknown_ids), 53)
+                    self.assertEqual(a['count'], len(ITEMS))
+                if test['label'] == '予算any 既定条件':
+                    report.append(f"|↳ 価格有り {len(priced)}件 / 価格不明 {len(unknown_ids)}件|—|—|○|")
                 if warning_ids:
                     before = sum(a['baselineIds'].index(i)+1 for i in warning_ids)/len(warning_ids)
                     after = sum(a['ids'].index(i)+1 for i in warning_ids)/len(warning_ids)
@@ -136,7 +163,7 @@ class CountTests(unittest.TestCase):
                 if test.get('url'):
                     self.assertEqual(a['restored']['use'], 'visit')
                     self.assertEqual(a['restored']['mine'], '大阪')
-        report += ['', f'{len(tests)}条件。上位N=min(24, 確認済み件数)の確認済み優先、注意付き件数・注意総数、共有URL往復も検証。',
+        report += ['', f'{len(tests)}条件。価格不明が末尾、各価格グループ内で確認済み優先、注意付き件数・注意総数、共有URL往復・旧URLも検証。',
                    '実データに存在しない境界価格は専用の仮想商品（3000・5000・10000円）でも4帯を確認。',
                    f'件数不一致: {len(failures)}。']
         (ROOT / 'tests/count_report.md').write_text('\n'.join(report)+'\n')

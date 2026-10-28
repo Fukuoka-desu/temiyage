@@ -18,7 +18,7 @@ export function readConditions(prefs: string[], genres: string[]): Conditions {
   for (const [key, values] of Object.entries({
     home: ["avoid", "nostalgic"],
     rel: ["", "business", "casual"],
-    budget: ["b1", "b2", "b3", "b4"],
+    budget: ["b1", "b2", "b3", "b4", "any"],
     use: Object.keys(uses),
     season: Object.keys(seasons),
     sort: ["recommend", "low", "high", "days"],
@@ -28,7 +28,8 @@ export function readConditions(prefs: string[], genres: string[]): Conditions {
     if (v !== null && values.includes(v)) Object.assign(c, { [key]: v });
   }
   if (p.get("use") === "first") c.use = "visit";
-  for (const key of ["nosweet", "keep"] as const) c[key] = p.get(key) === "1";
+  for (const key of ["nosweet", "keep", "pu"] as const)
+    c[key] = p.get(key) === "1";
   if (p.has("likes")) {
     const values = p.get("likes")!.split(",").filter(Boolean);
     if (values.every((v) => Object.hasOwnProperty.call(likeTags, v)))

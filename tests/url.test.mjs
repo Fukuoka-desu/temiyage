@@ -38,6 +38,7 @@ describe("共有条件", () => {
       rel: "casual",
       nosweet: true,
       keep: true,
+      pu: true,
       budget: "b3",
       use: "office",
       season: "chugen",
@@ -90,4 +91,20 @@ it("URLの苦手指定を優先し、検索語の全角空白を除去する", (
   );
   expect(c.likes).toEqual(["日本茶"]);
   expect(c.q).toBe("チョコ");
+});
+
+it("anyと価格不明指定を往復し、旧URLと不正値は既定に戻す", () => {
+  expect(read("").budget).toBe("b1");
+  expect(read("?budget=bad&pu=bad").pu).toBe(false);
+  for (const budget of ["any", "b1"]) {
+    const c = read(`?budget=${budget}&pu=1`);
+    const replaceState = vi.fn();
+    vi.stubGlobal("history", { replaceState });
+    writeConditions(c);
+    const search = new URL(replaceState.mock.calls[0][2], "https://example.com")
+      .search;
+    expect(read(search)).toEqual(c);
+    expect(read(search).pu).toBe(true);
+    expect(read(search).budget).toBe(budget);
+  }
 });

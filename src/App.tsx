@@ -1,3 +1,4 @@
+import { ItemPrice, dateLabel } from "./ItemPrice";
 import { useEffect, useMemo, useRef, useState } from "react";
 import data from "./data/items.json";
 import { Artwork, Emblem, Flower, Icon } from "./Artwork";
@@ -50,10 +51,13 @@ const budgetLabels = {
   b2: "3,000〜5,000円",
   b3: "5,000〜10,000円",
   b4: "10,000円〜",
+  any: "指定しない",
 };
-function dateLabel(value: string) {
-  const m = value.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-  return m ? `${Number(m[2])}月${Number(m[3])}日` : value;
+function budgetSummary(c: Conditions) {
+  return (
+    budgetLabels[c.budget] +
+    (c.budget !== "any" && c.pu ? "（価格不明も含む）" : "")
+  );
 }
 function App() {
   const [c, setC] = useState<Conditions>(() => readConditions(prefs, genres));
@@ -193,7 +197,7 @@ function App() {
               [...c.likes, ...c.traits.map((t) => traitLabels[t])].join("・") ||
                 "指定なし",
             ],
-            ["budget", "yen", "予算", budgetLabels[c.budget]],
+            ["budget", "yen", "予算", budgetSummary(c)],
           ].map(([key, icon, title, value], index) => (
             <div className="pill-step" key={title}>
               <button
@@ -218,7 +222,7 @@ function App() {
                   <span className="range-decoration" aria-hidden="true">
                     <i
                       style={{
-                        width: `${(Object.keys(budgets).indexOf(c.budget) + 1) * 25}%`,
+                        width: `${(Object.keys(budgets).indexOf(c.budget) + 1) * 20}%`,
                       }}
                     />
                   </span>
@@ -233,25 +237,38 @@ function App() {
           ))}
         </nav>
         <div className="mobile-quick" ref={quickRef}>
-          {(["season", "use"] as const).map((key) => (
+          {(["season", "use", "budget"] as const).map((key) => (
             <section key={key}>
               <h2>
-                {key === "season" ? "時期" : "用途"}
+                {key === "season" ? "時期" : key === "budget" ? "予算" : "用途"}
                 <span />
               </h2>
               <div className="quick-chips">
-                {Object.entries(key === "season" ? seasons : uses).map(
-                  ([value, label]) => (
-                    <button
-                      key={value}
-                      className={`chip ${c[key] === value ? "selected" : ""}`}
-                      aria-pressed={c[key] === value}
-                      onClick={() => update(key, value as never)}
-                    >
-                      {label}
-                      <Icon kind={value} />
-                    </button>
-                  ),
+                {Object.entries(
+                  key === "season"
+                    ? seasons
+                    : key === "budget"
+                      ? budgetLabels
+                      : uses,
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    className={`chip ${c[key] === value ? "selected" : ""}`}
+                    aria-pressed={c[key] === value}
+                    onClick={() => update(key, value as never)}
+                  >
+                    {label}
+                    <Icon kind={value} />
+                  </button>
+                ))}
+                {key === "budget" && c.budget !== "any" && (
+                  <button
+                    className={`chip ${c.pu ? "selected" : ""}`}
+                    aria-pressed={c.pu}
+                    onClick={() => update("pu", !c.pu)}
+                  >
+                    価格不明の品も含める
+                  </button>
                 )}
               </div>
             </section>
@@ -282,7 +299,7 @@ function App() {
                     c.traits.map((t) => traitLabels[t]).join("・") ||
                       "指定なし",
                   ],
-                  ["予算", budgetLabels[c.budget]],
+                  ["予算", budgetSummary(c)],
                   [
                     "関係",
                     c.rel === "business"
@@ -508,16 +525,16 @@ function App() {
                     <span>03</span> ご予算
                   </h2>
                   <label htmlFor="budget-range">
-                    ご予算（税込）：{budgetLabels[c.budget]}
+                    ご予算（税込）：{budgetSummary(c)}
                   </label>
                   <input
                     id="budget-range"
                     type="range"
                     min="0"
-                    max="3"
+                    max="4"
                     step="1"
                     value={Object.keys(budgets).indexOf(c.budget)}
-                    aria-valuetext={budgetLabels[c.budget]}
+                    aria-valuetext={budgetSummary(c)}
                     onChange={(e) =>
                       update(
                         "budget",
@@ -541,7 +558,19 @@ function App() {
                       </option>
                     ))}
                   </select>
-                  <p className="small-note">予算に近い品も候補に含めます。</p>
+                  {c.budget !== "any" && (
+                    <label className="small-note">
+                      <input
+                        type="checkbox"
+                        checked={c.pu}
+                        onChange={(e) => update("pu", e.target.checked)}
+                      />
+                      価格不明の品も含める
+                    </label>
+                  )}
+                  <p className="small-note">
+                    予算帯を選ぶと予算に近い品も含めます。「指定しない」は価格不明の品も含みます。価格不明の品は末尾に表示します。
+                  </p>
                 </section>
                 <section className="form-section section-occasion">
                   <h2>
@@ -706,13 +735,13 @@ function App() {
                               {i.p}
                               <small> / {i.r}</small>
                             </span>
-                            {!i.v && (
+                            {(!i.v || i.y === null) && (
                               <span className="badge unverified">要確認</span>
                             )}
                           </div>
                         </div>
                         <div className="card-content">
-                          {i.v && (
+                          {i.v && i.y !== null && (
                             <span className="verified-note">価格確認済み</span>
                           )}
                           <div className="card-title">
@@ -731,13 +760,7 @@ function App() {
                             {i.q || "内容量は販売元へご確認ください"}
                           </p>
                           <div className="price-specs">
-                            <div className="price">
-                              <strong>
-                                {i.y?.toLocaleString("ja-JP")}
-                                <span>円（税込）</span>
-                              </strong>
-                              <small>{dateLabel(i.c)}確認時点・税込</small>
-                            </div>
+                            <ItemPrice item={i} />
                             <div className="specs">
                               <span>
                                 {i.d !== null ? `約${i.d}日` : "日持ち要確認"}
@@ -753,7 +776,7 @@ function App() {
                               出典の表記：{i.dr}
                             </p>
                           )}
-                          {!i.v && (
+                          {(!i.v || i.y === null) && (
                             <p className="verification-note">
                               価格・販売状況は購入前に販売元へご確認ください
                             </p>
@@ -862,7 +885,7 @@ function App() {
             </p>
             <p>
               価格不明の{unknownPriceCount}
-              品は候補に表示しません。日持ち不明の品は「日持ち重視」でも含まれます。
+              品は予算「指定しない」または「価格不明の品も含める」で候補に含まれ、価格のある品のあとに表示します。日持ち不明の品は「日持ち重視」でも含まれます。
             </p>
           </div>
         </section>
