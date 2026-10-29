@@ -287,19 +287,6 @@ main,
   font-size: 11px;
   margin-top: 12px;
 }
-.results-heading {
-  margin: 0 0 15px;
-  display: flex;
-}
-.eyebrow {
-  font-size: 10px;
-  color: var(--muted);
-  letter-spacing: 0.1em;
-  margin-bottom: 5px;
-}
-.results-heading h2 {
-  font-size: 22px;
-}
 input:not([type="checkbox"]):not([type="range"]),
 select {
   width: 100%;
@@ -1030,12 +1017,6 @@ input[type="checkbox"] {
   }
   .selected-conditions {
     display: none;
-  }
-  .results-heading {
-    margin-bottom: 6px;
-  }
-  .results-heading h2 {
-    font-size: 20px;
   }
   .card-grid {
     grid-template-columns: minmax(0, 1fr);

@@ -575,12 +575,6 @@ function App() {
             ref={resultRef}
             aria-label="手土産の候補"
           >
-            <div className="results-heading">
-              <div>
-                <p className="eyebrow">あなたの気持ちを届ける候補</p>
-                <h2>こんな手土産はいかが？</h2>
-              </div>
-            </div>
             <BudgetRange conditions={c} onChange={setC} />
             <div className="filter-box">
               <label className="search-label" htmlFor="search">
