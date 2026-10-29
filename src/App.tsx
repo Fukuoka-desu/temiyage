@@ -12,8 +12,6 @@ import {
   type Mark,
 } from "./lib/marks";
 import {
-  budgetRange,
-  budgetSteps,
   budgetText,
   defaults,
   filterSort,
@@ -50,13 +48,6 @@ const prefs =
     " ",
   );
 const genres = [...new Set(items.map((i) => i.g))];
-const budgetLabels = {
-  b1: "〜3,000円",
-  b2: "3,000〜5,000円",
-  b3: "5,000〜10,000円",
-  b4: "10,000円〜",
-  any: "指定しない",
-};
 function budgetSummary(c: Conditions) {
   return (
     budgetText(c) + (c.budget !== "any" && c.pu ? "（価格不明も含む）" : "")
@@ -229,15 +220,6 @@ function App() {
                   {value}
                   <span aria-hidden="true">⌄</span>
                 </span>
-                {key === "budget" && (
-                  <span className="range-decoration" aria-hidden="true">
-                    <i
-                      style={{
-                        width: `${(budgetSteps.indexOf(budgetRange(c)[1]) / (budgetSteps.length - 1)) * 100}%`,
-                      }}
-                    />
-                  </span>
-                )}
               </button>
               {index < 4 && (
                 <span className="step-arrow" aria-hidden="true">
@@ -248,42 +230,25 @@ function App() {
           ))}
         </nav>
         <div className="mobile-quick" ref={quickRef}>
-          {(["season", "use", "budget"] as const).map((key) => (
+          {(["season", "use"] as const).map((key) => (
             <section key={key}>
               <h2>
-                {key === "season" ? "時期" : key === "budget" ? "予算" : "用途"}
+                {key === "season" ? "時期" : "用途"}
                 <span />
               </h2>
-              {key === "budget" && <p>{budgetSummary(c)}</p>}
               <div className="quick-chips">
-                {Object.entries(
-                  key === "season"
-                    ? seasons
-                    : key === "budget"
-                      ? budgetLabels
-                      : uses,
-                ).map(([value, label]) => (
-                  <button
-                    key={value}
-                    className={`chip ${(key !== "budget" || c.bmin === undefined) && c[key] === value ? "selected" : ""}`}
-                    aria-pressed={
-                      (key !== "budget" || c.bmin === undefined) &&
-                      c[key] === value
-                    }
-                    onClick={() => update(key, value as never)}
-                  >
-                    {label}
-                    <Icon kind={value} />
-                  </button>
-                ))}
-                {key === "budget" && c.budget !== "any" && (
-                  <button
-                    className={`chip ${c.pu ? "selected" : ""}`}
-                    aria-pressed={c.pu}
-                    onClick={() => update("pu", !c.pu)}
-                  >
-                    価格不明の品も含める
-                  </button>
+                {Object.entries(key === "season" ? seasons : uses).map(
+                  ([value, label]) => (
+                    <button
+                      key={value}
+                      className={`chip ${c[key] === value ? "selected" : ""}`}
+                      aria-pressed={c[key] === value}
+                      onClick={() => update(key, value as never)}
+                    >
+                      {label}
+                      <Icon kind={value} />
+                    </button>
+                  ),
                 )}
               </div>
             </section>

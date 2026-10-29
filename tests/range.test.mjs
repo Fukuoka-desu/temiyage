@@ -4,7 +4,11 @@ import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { BudgetRange as RangeEvent } from "../.test-build/BudgetEvent.js";
-import { BudgetRange } from "../.test-build/BudgetRange.js";
+import {
+  BudgetRange,
+  budgetPosition,
+  budgetThumb,
+} from "../.test-build/BudgetRange.js";
 import {
   defaults,
   budgets,
@@ -96,7 +100,7 @@ it("範囲ラベル・2つのつまみ・不明価格切替が表示される", 
   assert.ok(html.includes('aria-label="予算の下限"'));
   assert.ok(html.includes("aria-valuetext="));
   assert.ok(html.includes('aria-pressed="false"'));
-  assert.ok(html.includes("価格不明の品も含める"));
+  assert.ok(html.includes("価格不明も含める"));
   const any = renderToStaticMarkup(
     createElement(BudgetRange, {
       conditions: { ...defaults, budget: "any" },
@@ -105,6 +109,19 @@ it("範囲ラベル・2つのつまみ・不明価格切替が表示される", 
   );
   assert.ok(!any.includes('type="checkbox"'));
   assert.ok(any.includes('aria-pressed="true"'));
+});
+it("予算表示は下限0・上限なし・通常範囲・指定なしを書き分ける", () => {
+  for (const [conditions, expected] of [
+    [rangeConditions(defaults, 0, 3000), "〜¥3,000"],
+    [rangeConditions(defaults, 10000, Infinity), "¥10,000〜"],
+    [rangeConditions(defaults, 1500, 5000), "¥1,500–¥5,000"],
+    [{ ...defaults, budget: "any" }, "指定しない"],
+  ]) {
+    const html = renderToStaticMarkup(
+      createElement(BudgetRange, { conditions, onChange: () => {} }),
+    );
+    assert.ok(html.includes(`<output>予算 ${expected}</output>`));
+  }
 });
 it("範囲の0件提案は上限を次の段階へ広げる", () => {
   const c = {
@@ -127,27 +144,71 @@ it("両つまみは交差せず、操作でany解除・不明価格・指定し�
         c = next;
       },
     });
+  const nodes = (node) =>
+    !node || typeof node !== "object"
+      ? []
+      : [node, ...[node.props?.children].flat(Infinity).flatMap(nodes)];
   const inputs = () =>
-    tree().props.children[2].props.children.map(
-      (label) => label.props.children[1],
-    );
+    nodes(tree()).filter((node) => node.props?.type === "range");
+  const button = () => nodes(tree()).find((node) => node.type === "button");
+  const checkbox = () =>
+    nodes(tree()).find((node) => node.props?.type === "checkbox");
   inputs()[0].props.onChange({ target: { value: "12" } });
   assert.deepEqual(budgetRange(c), [5000, 5000]);
   inputs()[1].props.onChange({ target: { value: "0" } });
   assert.deepEqual(budgetRange(c), [5000, 5000]);
   inputs()[1].props.onChange({ target: { value: "13" } });
   assert.deepEqual(budgetRange(c), [5000, Infinity]);
-  tree().props.children[5].props.children[0].props.onChange({
+  checkbox().props.onChange({
     target: { checked: true },
   });
   assert.equal(c.pu, true);
-  tree().props.children[1].props.children[1].props.onClick();
+  button().props.onClick();
   assert.equal(c.budget, "any");
   assert.equal(c.bmin, undefined);
   inputs()[0].props.onChange({ target: { value: "5" } });
   assert.notEqual(c.budget, "any");
   assert.deepEqual(budgetRange(c), [3000, Infinity]);
-  tree().props.children[1].props.children[1].props.onClick();
-  tree().props.children[1].props.children[1].props.onClick();
+  button().props.onClick();
+  button().props.onClick();
   assert.deepEqual(budgetRange(c), [0, 3000]);
+});
+
+it("重なりと等距離は最初の移動方向で選び、それ以外は近いほうを選ぶ", () => {
+  assert.equal(budgetThumb(5, 5, 5), null);
+  assert.equal(budgetThumb(5, 5, 5, -1), 0);
+  assert.equal(budgetThumb(5, 5, 5, 1), 1);
+  assert.equal(budgetThumb(3, 9, 6), null);
+  assert.equal(budgetThumb(3, 9, 6, -1), 0);
+  assert.equal(budgetThumb(3, 9, 6, 1), 1);
+  assert.equal(budgetThumb(3, 9, 4), 0);
+  assert.equal(budgetThumb(3, 9, 8), 1);
+});
+it("位置はつまみの半径を考慮し0〜13へ収める", () => {
+  assert.equal(budgetPosition(122, 100, 304), 0);
+  assert.equal(budgetPosition(252, 100, 304), 6.5);
+  assert.equal(budgetPosition(382, 100, 304), 13);
+  assert.equal(budgetPosition(0, 100, 304), 0);
+  assert.equal(budgetPosition(500, 100, 304), 13);
+});
+it("クイック条件に予算は重複せず上下限の文字はアクセシブル名だけにある", () => {
+  const source = readFileSync(
+    new URL("../src/App.tsx", import.meta.url),
+    "utf8",
+  );
+  const quick = source.slice(
+    source.indexOf('className="mobile-quick"'),
+    source.indexOf('className="workspace"'),
+  );
+  assert.ok(!quick.includes("budget"));
+  const html = renderToStaticMarkup(
+    createElement(BudgetRange, {
+      conditions: rangeConditions(defaults, 1500, 5000),
+      onChange: () => {},
+    }),
+  );
+  assert.ok(html.includes('aria-label="予算の上限"'));
+  assert.ok(!html.replace(/<[^>]*>/g, "").includes("下限"));
+  assert.ok(!html.replace(/<[^>]*>/g, "").includes("上限"));
+  assert.ok(html.includes("¥1,500–¥5,000"));
 });

@@ -54,10 +54,15 @@ try {
       writeFileSync(new URL("ImageEvent.js", out), eventJS);
     }
     if (file === "BudgetRange") {
-      const eventSource = source.replace(
-        'import { useId } from "react";',
-        'const useId = () => "budget-test";',
-      );
+      const eventSource = source
+        .replace(
+          'import { useRef } from "react";',
+          "const useRef = () => ({ current: null });",
+        )
+        .replace(
+          'import { useId } from "react";',
+          'const useId = () => "budget-test";',
+        );
       const eventJS = ts
         .transpileModule(eventSource, {
           compilerOptions: {
