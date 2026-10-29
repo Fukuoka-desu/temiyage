@@ -94,6 +94,7 @@ try {
   await import("../tests/price.test.mjs");
   await import("../tests/range.test.mjs");
   await import("../tests/image.test.mjs");
+  await import("../tests/filter-accessibility.test.mjs");
 } finally {
   rmSync(out, { recursive: true, force: true });
 }

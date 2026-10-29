@@ -300,23 +300,6 @@ main,
 .results-heading h2 {
   font-size: 22px;
 }
-.filter-box {
-  display: flex;
-  gap: 12px;
-  align-items: end;
-  border-top: 1px solid var(--line);
-  padding-top: 12px;
-}
-.filter-box > div,
-.search-label {
-  min-width: 0;
-  flex: 1;
-}
-.filter-box label {
-  display: block;
-  font-size: 11px;
-  margin-bottom: 5px;
-}
 input:not([type="checkbox"]):not([type="range"]),
 select {
   width: 100%;
@@ -331,39 +314,6 @@ input[type="range"] {
   width: 100%;
   min-height: 44px;
   accent-color: #8a6a2f;
-}
-.result-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 0;
-  margin-bottom: 18px;
-  border-bottom: 1px solid var(--line);
-}
-.result-count p {
-  font-size: 12px;
-}
-.result-count strong {
-  font: 25px var(--serif);
-  margin-right: 4px;
-}
-.price-note {
-  display: block;
-  color: var(--muted);
-  font-size: 10px;
-  margin-top: 4px;
-}
-.sort-label {
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.sort-label select {
-  width: 142px;
-  font-size: 12px;
 }
 .card-grid {
   display: grid;
@@ -912,7 +862,7 @@ input[type="checkbox"] {
     order: 3;
     flex-basis: 100%;
     border: 0;
-    padding: 10px 0 0;
+    padding: 8px 0 0;
     justify-content: center;
     font-size: 25px;
   }
@@ -977,9 +927,9 @@ input[type="checkbox"] {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 13px;
-    padding-top: 30px;
-    padding-bottom: 22px;
+    gap: 8px;
+    padding-top: 12px;
+    padding-bottom: 10px;
   }
   .brand {
     gap: 10px;
@@ -1010,7 +960,7 @@ input[type="checkbox"] {
     flex-basis: 100%;
     text-align: center;
     white-space: normal;
-    padding: 15px 0 0;
+    padding: 8px 0 0;
     font-size: 17px;
     letter-spacing: 0.02em;
   }
@@ -1030,17 +980,17 @@ input[type="checkbox"] {
   }
   .mobile-quick {
     display: block;
-    margin-bottom: 21px;
+    margin-bottom: 8px;
   }
   .mobile-quick section + section {
-    margin-top: 18px;
+    margin-top: 10px;
   }
   .mobile-quick h2 {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 20px;
-    margin-bottom: 12px;
+    font-size: 18px;
+    margin-bottom: 6px;
   }
   .mobile-quick h2:after {
     content: "";
@@ -1067,9 +1017,9 @@ input[type="checkbox"] {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 15px;
-    font: 17px var(--serif);
-    min-height: 48px;
+    padding: 7px 12px;
+    font: 14px var(--serif);
+    min-height: 38px;
   }
   .quick-chips svg {
     width: 21px;
@@ -1082,55 +1032,10 @@ input[type="checkbox"] {
     display: none;
   }
   .results-heading {
-    margin-bottom: 12px;
+    margin-bottom: 6px;
   }
   .results-heading h2 {
     font-size: 20px;
-  }
-  .filter-box {
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .search-label {
-    flex-basis: 100%;
-  }
-  .filter-pref,
-  .genre-filter {
-    flex-basis: calc(50% - 4px) !important;
-  }
-  .filter-box label {
-    font-size: 10px;
-  }
-  .filter-box select {
-    font-size: 12px;
-  }
-  .result-toolbar {
-    align-items: start;
-    gap: 7px;
-    margin-bottom: 16px;
-  }
-  .result-count p {
-    font-size: 10px;
-  }
-  .result-count strong {
-    font-size: 24px;
-  }
-  .result-count p > span {
-    display: block;
-  }
-  .price-note {
-    font-size: 9px;
-    max-width: 195px;
-    line-height: 1.6;
-  }
-  .sort-label {
-    display: block;
-    font-size: 10px;
-  }
-  .sort-label select {
-    display: block;
-    margin-top: 4px;
-    width: 137px;
   }
   .card-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -1285,47 +1190,103 @@ input[type="checkbox"] {
     scroll-behavior: auto !important;
   }
 }
-.filter-box > .search-label {
-  flex: 1.5;
-  margin-bottom: 0;
+.filter-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 8px;
 }
-.search-label > span {
-  display: block;
-  font-size: 11px;
-  margin-bottom: 5px;
-}
-.filter-box > .sort-label {
-  display: block;
-  margin-bottom: 0;
+.filter-box .search-label {
+  position: relative;
   flex: 1;
+  min-width: 0;
 }
-.filter-box > .sort-label select {
-  width: 100%;
-  margin-top: 5px;
+.search-label svg {
+  position: absolute;
+  left: 12px;
+  top: 9px;
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.filter-box input[type="search"] {
+  height: 38px;
+  min-height: 38px;
+  padding: 7px 12px 7px 38px;
+  border-radius: 24px;
+  font-size: 12px;
+}
+.filter-selects {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px;
+  margin: -4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filter-selects::-webkit-scrollbar {
+  display: none;
+}
+.filter-selects > div {
+  position: relative;
+  flex-shrink: 0;
+}
+.filter-selects > div::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--muted);
+  font-size: 12px;
+}
+.filter-box select {
+  appearance: none;
+  width: auto;
+  height: 38px;
+  min-height: 38px;
+  border-radius: 24px;
+  padding: 7px 30px 7px 12px;
+  font-size: 12px;
 }
 .result-toolbar {
-  padding-top: 10px;
+  padding: 8px 0;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #dcd0ba80;
+}
+.result-count {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+}
+.result-count p {
+  font-size: 11px;
+}
+.result-count strong {
+  font: 18px var(--serif);
+  margin-right: 3px;
+}
+.price-note {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
 }
 .selected-conditions details:not([open]) .fold-icon {
   transform: rotate(-90deg);
 }
 @media (max-width: 640px) {
-  .filter-box > .search-label {
-    flex: 1 1 100%;
+  .filter-box {
+    flex-direction: column;
+    align-items: stretch;
   }
-  .filter-box > .sort-label {
-    flex: 1 1 100%;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
-  }
-  .filter-box > .sort-label select {
-    width: 150px;
-    margin: 0;
-  }
-  .search-label > span {
-    font-size: 10px;
+  .filter-box .search-label {
+    flex: auto;
   }
 }
 

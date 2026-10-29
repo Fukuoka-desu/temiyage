@@ -584,57 +584,68 @@ function App() {
             <BudgetRange conditions={c} onChange={setC} />
             <div className="filter-box">
               <label className="search-label" htmlFor="search">
-                <span>キーワード</span>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  aria-hidden="true"
+                >
+                  <circle cx="10.5" cy="10.5" r="6.5" />
+                  <path d="m16 16 4.5 4.5" />
+                </svg>
                 <input
                   id="search"
                   type="search"
-                  placeholder="スペース区切りで絞り込み（すべて含む）"
+                  placeholder="品名・メーカー・県で検索"
                   value={c.q}
                   onChange={(e) => update("q", e.target.value)}
                   aria-label="品名・メーカー・県・内容量で検索"
                 />
               </label>
-              <div className="filter-pref">
-                <label htmlFor="fpref">産地で絞る</label>
-                <select
-                  id="fpref"
-                  value={c.fpref}
-                  onChange={(e) => update("fpref", e.target.value)}
-                >
-                  <option value="">すべての都道府県</option>
-                  {prefs.map((p) => (
-                    <option key={p}>{p}</option>
-                  ))}
-                </select>
+              <div className="filter-selects">
+                <div className="filter-pref">
+                  <select
+                    id="fpref"
+                    aria-label="産地で絞る"
+                    value={c.fpref}
+                    onChange={(e) => update("fpref", e.target.value)}
+                  >
+                    <option value="">産地：すべて</option>
+                    {prefs.map((p) => (
+                      <option key={p}>{p}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="genre-filter">
+                  <select
+                    id="genre"
+                    aria-label="ジャンルで絞る"
+                    value={c.genre}
+                    onChange={(e) => update("genre", e.target.value)}
+                  >
+                    <option value="">ジャンル：すべて</option>
+                    {genres.map((g) => (
+                      <option key={g}>{g}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sort-label">
+                  <select
+                    id="sort"
+                    aria-label="並べ替え"
+                    value={c.sort}
+                    onChange={(e) =>
+                      update("sort", e.target.value as Conditions["sort"])
+                    }
+                  >
+                    <option value="recommend">おすすめ順</option>
+                    <option value="low">価格の安い順</option>
+                    <option value="high">価格の高い順</option>
+                    <option value="days">日持ちの長い順</option>
+                  </select>
+                </div>
               </div>
-              <div className="genre-filter">
-                <label htmlFor="genre">ジャンル</label>
-                <select
-                  id="genre"
-                  value={c.genre}
-                  onChange={(e) => update("genre", e.target.value)}
-                >
-                  <option value="">すべて</option>
-                  {genres.map((g) => (
-                    <option key={g}>{g}</option>
-                  ))}
-                </select>
-              </div>
-              <label htmlFor="sort" className="sort-label">
-                並べ替え
-                <select
-                  id="sort"
-                  value={c.sort}
-                  onChange={(e) =>
-                    update("sort", e.target.value as Conditions["sort"])
-                  }
-                >
-                  <option value="recommend">おすすめ順</option>
-                  <option value="low">価格の安い順</option>
-                  <option value="high">価格の高い順</option>
-                  <option value="days">日持ちの長い順</option>
-                </select>
-              </label>
             </div>
             <div className="result-toolbar">
               <div className="result-count">
