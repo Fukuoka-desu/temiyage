@@ -28,6 +28,70 @@ def norm(text):
     return ''.join(ch for ch in text if not (ch.isspace() or unicodedata.category(ch)[0] in 'PS' or ch == 'ー'))
 
 
+
+SWEETS = {'和菓子', '洋菓子', 'チョコ'}
+FRUIT = r'いちご|苺|りんご|林檎|アップル|みかん|蜜柑|レモン|檸檬|柚子|ゆず|柚|ぶどう|葡萄|梅(?!乃宿)|桃|メロン|フルーツ|果実|果樹|あまおう|日向夏|パイン|鳳梨|さくらんぼ|無花果|いちじく|ラズベリー|オレンジ|柑'
+
+
+def flavor(i):
+    if ((i['g'] in SWEETS and re.search(r'おかき|あられ|柿の種|海鮮煎餅|えびせん|海老|赤えび|えびチーズ|明太|めんたい|ふぐ煎餅|辛マヨ|カレー', i['n'])) or re.search('みそたれ|醤油たれ', i['q'])) and not re.search('チョコ|ショコラ|饅頭|まん', i['n']):
+        return 'savory'
+    if i['g'] in {'おつまみ', 'ご飯のお供'}:
+        return 'savory'
+    if i['g'] in SWEETS or SWEETS.intersection(i['t']):
+        return 'sweet'
+    if i['g'] == 'その他' and (re.search('シロップ|しろっぷ|バウム|羊羹|もなか|最中|饅頭|ケーキ|クッキー|チョコ', i['n']) or sum(w in i['q'] for w in ['チョコ', 'マドレーヌ', 'クッキー', 'ブッセ', 'パイ', 'ケーキ', 'バウム', 'フィナンシェ']) >= 2):
+        return 'sweet'
+    return None
+
+
+def known_days(i):
+    if i['d'] is not None:
+        return i['d']
+    if '当日' in i['dr']:
+        return 0
+    text = unicodedata.normalize('NFKC', i['dr'])
+    text = re.sub(r'(?:\d+\s*[~〜～−-]\s*)?\d+\s*月(?:頃|初旬|中旬|下旬)?', '', text)
+    nums = [int(n) for n in re.findall(r'\d+', text)]
+    return min(nums) if nums else None
+
+
+def likes(i, key, tags):
+    f = flavor(i)
+    if key == '甘いもの':
+        return f == 'sweet'
+    if key in {'和菓子', '洋菓子'}:
+        return f != 'savory' and (i['g'] == key or key in tags)
+    if key == 'チョコレート':
+        return f != 'savory' and (i['g'] == 'チョコ' or 'チョコ' in tags or re.search('チョコ|ショコラ|カカオ|ガナッシュ', i['n']))
+    if key == 'お酒':
+        return i['g'] == '酒' and '甘酒' not in i['n'] + i['q']
+    if key in {'日本茶', 'コーヒー・紅茶'}:
+        if i['g'] in SWEETS:
+            return False
+        black = '紅茶' in i['n'] + i['q']
+        if key == '日本茶':
+            return bool(re.search('煎茶|玉露|ほうじ茶|緑茶|伊勢茶|銘茶|茶葉|抹茶', i['n'])) or (i['g'] == '茶' and not black)
+        return black or bool(re.search('珈琲|コーヒー', i['n'] + i['q'])) or i['g'] == 'コーヒー'
+    if key == '辛党・おつまみ':
+        return 'おつまみ' in tags or (f == 'savory' and i['g'] != 'ご飯のお供')
+    if key == 'ヘルシー':
+        return 'ヘルシー' in tags and not re.search('ナッツ|ピーナッツ|柿の種|パイ|ロール', i['n'])
+    if key == '果物':
+        return not likes(i, 'お酒', tags) and (re.search(FRUIT, i['n']) or ('果物' in tags and re.search(FRUIT, i['q'])))
+    return bool(tags.intersection(LIKES[key]))
+
+
+def tier(i, c):
+    if c['budget'] != 'any' and i['y'] is not None:
+        lo, hi = {'b1': (0, 3000), 'b2': (3000, 5000), 'b3': (5000, 10000), 'b4': (10000, float('inf'))}[c['budget']]
+        if c.get('bmin') is not None:
+            lo, hi = c['bmin'], c.get('bmax', float('inf'))
+        if not lo <= i['y'] <= hi:
+            return 2
+    return int((c['keep'] and known_days(i) is None) or (c['budget'] != 'any' and i['y'] is None))
+
+
 def eligible(c):
     low, high = {'b1': (0, 3450), 'b2': (2400, 5750),
                  'b3': (4000, 11500), 'b4': (8000, float('inf')), 'any': (0, float('inf'))}[c['budget']]
@@ -45,11 +109,11 @@ def eligible(c):
             continue
         if c['home'] == 'avoid' and i['p'] == c['pref']:
             continue
-        if c['nosweet'] and tags.intersection({'和菓子', '洋菓子', 'チョコ'}):
+        if c['nosweet'] and flavor(i) == 'sweet':
             continue
-        if c['keep'] and i['d'] is not None and i['d'] < 7:
+        if c['keep'] and known_days(i) is not None and known_days(i) < 7:
             continue
-        if c['likes'] and not any(tags.intersection(LIKES[k]) for k in c['likes']):
+        if c['likes'] and not any(likes(i, k, tags) for k in c['likes']):
             continue
         if c['fpref'] and c['fpref'] != i['p']:
             continue
@@ -73,7 +137,8 @@ def eligible(c):
 
 def warnings(i, c):
     m = MARKS.get(str(i['id']), {})
-    return (int(c['season'] == 'chugen' and 'summer_caution' in m)
+    return (int(c['keep'] and known_days(i) is None)
+            + int(c['season'] == 'chugen' and 'summer_caution' in m)
             + int(c['use'] == 'apology' and bool({'alcohol', 'flashy'} & m.keys()))
             + int(c['use'] == 'mimai' and 'alcohol' in m)
             + int(c['use'] == 'mimai' and 'short_keep' in m))
@@ -151,13 +216,17 @@ class CountTests(unittest.TestCase):
                 verified = sum(i['v'] for i in priced)
                 n = min(24, verified)
                 by_id = {i['id']: i for i in [*ITEMS, *expected]}
-                if not c['q'].strip() or c['sort'] != 'recommend':
-                    self.assertTrue(all(by_id[i]['v'] for i in a['ids'][:n]))
-                    unknown_ids = {i['id'] for i in expected if i['y'] is None}
-                    self.assertEqual(set(a['ids'][len(priced):]), unknown_ids)
-                    for group in [a['ids'][:len(priced)], a['ids'][len(priced):]]:
-                        flags = [by_id[i]['v'] for i in group]
-                        self.assertEqual(flags, sorted(flags, reverse=True))
+                unknown_ids = {i['id'] for i in expected if i['y'] is None}
+                ordered = [by_id[i] for i in a['ids']]
+                self.assertEqual([tier(i, c) for i in ordered], sorted(tier(i, c) for i in ordered))
+                groups = {}
+                for i in ordered:
+                    hits = sum(bool(MARKS.get(str(i['id']), {}).get(t)) for t in c['traits'])
+                    groups.setdefault((tier(i, c), -hits), []).append(i)
+                for group in groups.values():
+                    if not c['q'].strip() or c['sort'] != 'recommend':
+                        keys = [(i['y'] is None, not i['v']) for i in group]
+                        self.assertEqual(keys, sorted(keys))
                 self.assertEqual(a['restored']['budget'], c['budget'])
                 self.assertEqual(a['restored']['pu'], c['pu'])
                 if c['budget'] == 'b1' and not c['pu']:
@@ -169,7 +238,7 @@ class CountTests(unittest.TestCase):
                     self.assertEqual(a['count'], len(ITEMS))
                 if test['label'] == '予算any 既定条件':
                     report.append(f"|↳ 価格有り {len(priced)}件 / 価格不明 {len(unknown_ids)}件|—|—|○|")
-                if warning_ids:
+                if warning_ids and not c['keep']:
                     before = sum(a['baselineIds'].index(i)+1 for i in warning_ids)/len(warning_ids)
                     after = sum(a['ids'].index(i)+1 for i in warning_ids)/len(warning_ids)
                     report.append(f"|↳ 注意付き{len(warning_ids)}件・平均順位 {before:.2f}→{after:.2f}|—|—|{'○' if after > before else '×'}|")
@@ -182,7 +251,7 @@ class CountTests(unittest.TestCase):
                 if test.get('url'):
                     self.assertEqual(a['restored']['use'], 'visit')
                     self.assertEqual(a['restored']['mine'], '大阪')
-        report += ['', f'{len(tests)}条件。検索なし・明示順は価格不明が末尾かつ確認済み優先、検索ありのおすすめ順は検索点優先、注意付き件数・注意総数、共有URL往復・旧URLも検証。',
+        report += ['', f'{len(tests)}条件。検索なし・明示順は確かさの段・趣味の一致数を優先し、同じ段と一致数では価格不明が末尾かつ確認済み優先、注意付き件数・注意総数、共有URL往復・旧URLも検証。',
                    '実データに存在しない境界価格は専用の仮想商品（3000・5000・10000円）でも4帯を確認。',
                    f'件数不一致: {len(failures)}。']
         (ROOT / 'tests/count_report.md').write_text('\n'.join(report)+'\n')

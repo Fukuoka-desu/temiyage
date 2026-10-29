@@ -69,7 +69,7 @@ describe("スコアと除外条件", () => {
   });
   it("予算境界・許容範囲の端を含む", () => {
     expect(run({ y: 3000 })).toHaveLength(1);
-    expect(run({ y: 3450 })[0].why).toContain("予算に近い");
+    expect(run({ y: 3450 })[0].why).toContain("予算に近い（予算外）");
     expect(run({ y: 3451 })).toEqual([]);
     expect(run({ y: 2400 }, { budget: "b2" })).toHaveLength(1);
     expect(run({ y: 2399 }, { budget: "b2" })).toEqual([]);
@@ -157,7 +157,7 @@ describe("実データ・表示絞り込み", () => {
   it("産地とジャンルの絞り込み、価格・日持ち順を守る", () => {
     const results = scoreItems(
       [
-        { ...base, id: 1, d: null, y: 1000 },
+        { ...base, id: 1, d: null, dr: "", y: 1000 },
         { ...base, id: 2, d: 7, y: 2000 },
         { ...base, id: 3, d: 30, y: 3000 },
       ],

@@ -1,3 +1,11 @@
+import {
+  taste,
+  isAlcohol,
+  drinkTea,
+  isHealthy,
+  isFruit,
+  keepDays,
+} from "./infer";
 import { searchScore, searchWords } from "./search";
 export { normalize } from "./search";
 import { itemMarks, traitReason, type Marks, type Trait } from "./marks";
@@ -149,6 +157,8 @@ export interface Result {
   score: number;
   why: string[];
   cautions: string[];
+  tier: number;
+  traitHits: number;
 }
 export function scoreItems(
   items: Item[],
@@ -161,14 +171,21 @@ export function scoreItems(
   for (const it of items) {
     const has = (tag: string) =>
       tag === "個包装" ? it.ko : it.t.includes(tag);
-    if (c.nosweet && ["和菓子", "洋菓子", "チョコ"].some(has)) continue;
+    const flavor = taste(it);
+    const shelf = keepDays(it);
+    const knownKeep = shelf.source === "data" || shelf.source === "text";
+    let tier =
+      (c.keep && !knownKeep) || (c.budget !== "any" && it.y === null) ? 1 : 0;
+    if (c.nosweet && flavor === "sweet") continue;
     // 贈り手と相手の土地が同じでも、相手の出身地の除外を優先する。
     if (c.home === "avoid" && c.pref && it.p === c.pref) continue;
-    if (c.keep && it.d !== null && it.d < 7) continue;
+    if (c.keep && knownKeep && shelf.days !== null && shelf.days < 7) continue;
     if (it.y === null && c.budget !== "any" && !c.pu) continue;
     let score = 0;
     const why: string[] = [];
     const cautions: string[] = [];
+    if (c.keep && !knownKeep)
+      cautions.push("日持ちは未確認です。購入前にご確認ください");
     const itemMark = marks[it.id] ?? {};
     const add = (n: number, reason?: string) => {
       score += n;
@@ -176,13 +193,39 @@ export function scoreItems(
     };
     if (c.budget !== "any" && it.y !== null) {
       if (it.y >= lo && it.y <= hi) add(5, "予算内");
-      else if (it.y >= (lo * 80) / 100 && it.y <= (hi * 115) / 100)
-        add(1, "予算に近い");
-      else continue;
+      else if (it.y >= (lo * 80) / 100 && it.y <= (hi * 115) / 100) {
+        add(1, "予算に近い（予算外）");
+        tier = 2;
+      } else continue;
     }
     let hit = 0;
     for (const key of c.likes) {
-      if (likeTags[key]?.some(has)) {
+      const tea = drinkTea(it);
+      const matches =
+        key === "甘いもの"
+          ? flavor === "sweet"
+          : key === "和菓子" || key === "洋菓子"
+            ? flavor !== "savory" && (it.g === key || has(key))
+            : key === "チョコレート"
+              ? flavor !== "savory" &&
+                (it.g === "チョコ" ||
+                  has("チョコ") ||
+                  /チョコ|ショコラ|カカオ|ガナッシュ/.test(it.n))
+              : key === "お酒"
+                ? isAlcohol(it)
+                : key === "コーヒー・紅茶"
+                  ? tea.western || it.g === "コーヒー"
+                  : key === "日本茶"
+                    ? tea.japanese
+                    : key === "辛党・おつまみ"
+                      ? has("おつまみ") ||
+                        (flavor === "savory" && it.g !== "ご飯のお供")
+                      : key === "ヘルシー"
+                        ? isHealthy(it)
+                        : key === "果物"
+                          ? isFruit(it)
+                          : likeTags[key]?.some(has);
+      if (matches) {
         hit++;
         why.push(
           key === "家族向け" ? "個包装で分けやすい" : `${key}好きに合う`,
@@ -252,7 +295,8 @@ export function scoreItems(
       if (it.y !== null && it.y <= 3000) add(1);
     }
     if (c.use === "office" && itemMark.short_keep) add(-2);
-    if (c.keep && it.d !== null && it.d >= 30) add(2, "日持ちする");
+    if (c.keep && knownKeep && shelf.days !== null && shelf.days >= 30)
+      add(2, "日持ちする");
     if (c.home === "nostalgic" && c.pref && it.p === c.pref) {
       score += 8;
       why.unshift("相手の地元の懐かしい味");
@@ -281,10 +325,19 @@ export function scoreItems(
     }
     why.unshift(...priority);
     if (it.v) score += 0.5;
-    results.push({ item: it, score, why, cautions });
+    results.push({
+      item: it,
+      score,
+      why,
+      cautions,
+      tier,
+      traitHits: c.traits.filter((trait) => Boolean(itemMark[trait])).length,
+    });
   }
   return results.sort(
     (a, b) =>
+      a.tier - b.tier ||
+      b.traitHits - a.traitHits ||
       Number(a.item.y === null) - Number(b.item.y === null) ||
       Number(b.item.v) - Number(a.item.v) ||
       b.score - a.score ||
@@ -306,6 +359,8 @@ export function filterSort(results: Result[], c: Conditions) {
     })
     .sort(
       (a, b) =>
+        a.tier - b.tier ||
+        b.traitHits - a.traitHits ||
         (c.sort === "recommend" && words.length
           ? (scores.get(b) ?? 0) - (scores.get(a) ?? 0)
           : 0) ||
@@ -316,7 +371,7 @@ export function filterSort(results: Result[], c: Conditions) {
           : c.sort === "high"
             ? (b.item.y ?? 0) - (a.item.y ?? 0)
             : c.sort === "days"
-              ? (b.item.d ?? -1) - (a.item.d ?? -1)
+              ? (keepDays(b.item).days ?? -1) - (keepDays(a.item).days ?? -1)
               : 0),
     );
 }
@@ -345,6 +400,17 @@ export function relaxationOptions(items: Item[], c: Conditions) {
     ["日持ち重視を外す", { keep: false }],
     ["甘いもの苦手を外す", { nosweet: false }],
   ];
+  if (c.likes.length > 1)
+    for (const like of c.likes)
+      options.push([
+        `好み『${like}』を外す`,
+        { likes: c.likes.filter((key) => key !== like) },
+      ]);
+  if (c.budget !== "any")
+    options.push([
+      "予算を指定しない",
+      { budget: "any", bmin: undefined, bmax: undefined },
+    ]);
   const current = filterSort(scoreItems(items, c), c).length;
   return options
     .map(([label, patch]) => {
@@ -355,5 +421,7 @@ export function relaxationOptions(items: Item[], c: Conditions) {
         count: filterSort(scoreItems(items, conditions), conditions).length,
       };
     })
-    .filter((option) => option.count > current);
+    .filter((option) => option.count > current)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6);
 }

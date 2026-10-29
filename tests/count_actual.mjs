@@ -10,6 +10,7 @@ try {
     "makerNames",
     "search",
     "score",
+    "infer",
     "url",
   ]) {
     let source = readFileSync(
@@ -28,7 +29,7 @@ try {
         },
       })
       .outputText.replace(
-        /(['"])\.\/(score|search|marks|drinkKind|makerNames)\1/g,
+        /(['"])\.\/(infer|score|search|marks|drinkKind|makerNames)\1/g,
         "'./$2.js'",
       );
     writeFileSync(new URL(`${name}.js`, dir), js);

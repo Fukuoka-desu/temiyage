@@ -12,6 +12,7 @@ try {
   for (const file of [
     "marks",
     "score",
+    "infer",
     "search",
     "makerNames",
     "drinkKind",
@@ -87,12 +88,13 @@ try {
     writeFileSync(
       new URL(`${file}.js`, out),
       result.outputText.replace(
-        /(['"])\.\/(?:lib\/)?(score|search|makerNames|drinkKind|marks|Artwork)\1/g,
+        /(['"])\.\/(?:lib\/)?(infer|score|search|makerNames|drinkKind|marks|Artwork)\1/g,
         "'./$2.js'",
       ),
     );
   }
   await import("../tests/score.test.mjs");
+  await import("../tests/infer.test.mjs");
   await import("../tests/search.test.mjs");
   await import("../tests/url.test.mjs");
   await import("../tests/price.test.mjs");
