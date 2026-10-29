@@ -801,15 +801,15 @@ id,品名,出典ページ,画像URL,取得結果,理由
 800,明太せんべい ふわぴりり,https://www.fukuya.jp/products/%E3%81%B5%E3%82%8F%E3%81%B4%E3%82%8A%E3%82%8A%E6%98%8E%E5%A4%AA%E3%81%9B%E3%82%93%E3%81%B9%E3%81%84%EF%BC%94%EF%BC%90%E6%9E%9A/,https://www.fukuya.jp/wp/wp-content/uploads/2024/05/%E3%81%B5%E3%82%8F%E3%81%B4%E3%82%8A%E3%82%8A%E6%98%8E%E5%A4%AA%E3%81%9B%E3%82%93%E3%81%B9%E3%81%84-1024x1024.png,取得,公式商品ページ(調査)
 801,博多中洲明太菓子 すずめの卵,https://www.fukuya.jp/products/%E5%8D%9A%E5%A4%9A%E4%B8%AD%E6%B4%B2%E6%98%8E%E5%A4%AA%E8%8F%93%E5%AD%90-%E3%81%99%E3%81%9A%E3%82%81%E3%81%AE%E5%8D%B5-%E7%AE%B1%E5%85%A5/,https://www.fukuya.jp/wp/wp-content/uploads/2024/05/s_0805%E3%81%B5%E3%81%8F%E3%82%84292-1024x682.jpg,取得,公式商品ページ(調査)
 802,さが錦,https://www.anafesta.com/airports/hsg/23_1541/,https://www.anafesta.com/assets/images/products/23_1541_01.jpg,取得,空港
-803,丸ぼうろ,https://www.muraokaya.co.jp/marubouro/index.html,,取れなかった,画像タグなし
-804,鍋島さま 中丸型,https://www.muraokaya.co.jp/nabeshimasama/index.html,,取れなかった,画像タグなし
-805,小豆のかくれんぼ,https://www.muraokaya.co.jp/azukinokakurenbo/index.html,,取れなかった,画像タグなし
-806,どら焼き,https://www.muraokaya.co.jp/dorayaki/index.html,,取れなかった,画像タグなし
-807,昔風味の小城羊羹 本煉,https://www.muraokaya.co.jp/mukashiogiyoukan/index.html,,取れなかった,画像タグなし
-808,小城羊羹 大型 小倉,https://www.muraokaya.co.jp/ogiyoukan/index.html,,取れなかった,画像タグなし
-809,徐福さん,https://www.muraokaya.co.jp/johukusan/index.html,,取れなかった,画像タグなし
-810,果恋,https://www.muraokaya.co.jp/karen/index.html,,取れなかった,画像タグなし
-811,ラズベリー果恋,https://www.muraokaya.co.jp/karen/index.html,,取れなかった,画像タグなし
+803,丸ぼうろ,https://www.muraokaya.co.jp/marubouro/index.html,https://www.muraokaya.co.jp/common/images/marubouro/img_syouhin_marubouro_12.jpg,取得,公式サイト
+804,鍋島さま 中丸型,https://www.muraokaya.co.jp/nabeshimasama/c_8/index.html,https://www.muraokaya.co.jp/common/images/nabeshimasama/c_8/img_01_big.jpg,取得,公式サイト
+805,小豆のかくれんぼ,https://www.muraokaya.co.jp/azukinokakurenbo/p_5/index.html,https://www.muraokaya.co.jp/common/images/azukinokakurenbo/p_5/img_01_big.jpg,取得,公式サイト
+806,どら焼き,https://www.muraokaya.co.jp/dorayaki/c_4/index.html,https://www.muraokaya.co.jp/common/images/dorayaki/c_4/img_01_big.jpg,取得,公式サイト
+807,昔風味の小城羊羹 本煉,https://www.muraokaya.co.jp/mukashiogiyoukan/h_1/index.html,https://www.muraokaya.co.jp/common/images/mukashiogiyoukan/h_1/img_01_big.jpg,取得,公式サイト
+808,小城羊羹 大型 小倉,https://www.muraokaya.co.jp/ogiyoukan/o_1/index.html,https://www.muraokaya.co.jp/common/images/ogiyoukan/o_1/img_o_big.jpg,取得,公式サイト
+809,徐福さん,https://www.muraokaya.co.jp/johukusan/c_5/index.html,https://www.muraokaya.co.jp/common/images/johukusan/c_5/img_01_big.jpg,取得,公式サイト
+810,果恋,https://www.muraokaya.co.jp/karen/p_6/index.html,https://www.muraokaya.co.jp/common/images/karen/p_6/img_01_big.jpg,取得,公式サイト
+811,ラズベリー果恋,https://muraokaya.co.jp/karen/rz_6/index.html,https://muraokaya.co.jp/common/images/karen/rz_6/img_01_big.jpg,取得,公式サイト
 812,花ぼうろ,https://shop.marubolo.com/view/item/000000000125,https://makeshop-multi-images.akamaized.net/mkitajima/itemimages/000000000125_wrKBlK7.png,取得,og:image
 813,マーガレット・ダ・マンド,https://shop.marubolo.com/view/item/000000000065,https://makeshop-multi-images.akamaized.net/mkitajima/itemimages/000000000065_Sa4SKjN.png,取得,og:image
 814,ごまぼうろ,https://shop.marubolo.com/view/item/000000000075?category_page_id=goma,https://makeshop-multi-images.akamaized.net/mkitajima/itemimages/000000000075_O8CT0Dx.png,取得,公式商品ページ(調査)
