@@ -13,6 +13,8 @@ try {
     "marks",
     "score",
     "search",
+    "makerNames",
+    "drinkKind",
     "url",
     "ItemPrice",
     "Artwork",
@@ -85,7 +87,7 @@ try {
     writeFileSync(
       new URL(`${file}.js`, out),
       result.outputText.replace(
-        /(['"])\.\/(?:lib\/)?(score|search|marks|Artwork)\1/g,
+        /(['"])\.\/(?:lib\/)?(score|search|makerNames|drinkKind|marks|Artwork)\1/g,
         "'./$2.js'",
       ),
     );

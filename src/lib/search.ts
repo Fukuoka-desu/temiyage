@@ -1,4 +1,6 @@
+import { makerNames } from "./makerNames";
 import type { Item } from "./score";
+import { drinkKind, type DrinkKind } from "./drinkKind";
 
 const fold = (s: string) =>
   s
@@ -17,6 +19,7 @@ type Alias = {
   field: Field;
   values: string[];
   sake?: boolean;
+  kinds?: DrinkKind[];
 };
 // 地名は県だけ、ジャンルはジャンルだけへ広げ、無関係な部分一致を防ぐ。
 const cities: Record<string, string> = {
@@ -82,10 +85,32 @@ const aliases: Alias[] = [
     values: ["日本酒", "焼酎", "ワイン", "梅酒", "ビール"],
   },
   {
-    words: ["日本酒"],
-    field: "n",
-    values: ["純米", "吟醸", "大吟醸", "本醸造", "原酒", "酒"],
+    words: ["日本酒", "地酒", "清酒", "にほんしゅ"],
+    field: "g",
+    values: [],
+    kinds: ["日本酒"],
     sake: true,
+  },
+  {
+    words: ["焼酎", "しょうちゅう"],
+    field: "g",
+    values: [],
+    kinds: ["焼酎", "泡盛"],
+  },
+  { words: ["泡盛", "あわもり"], field: "g", values: [], kinds: ["泡盛"] },
+  { words: ["ワイン", "わいん"], field: "g", values: [], kinds: ["ワイン"] },
+  { words: ["梅酒", "うめしゅ"], field: "g", values: [], kinds: ["梅酒"] },
+  {
+    words: ["ビール", "クラフトビール"],
+    field: "g",
+    values: [],
+    kinds: ["ビール"],
+  },
+  {
+    words: ["リキュール", "果実酒"],
+    field: "g",
+    values: [],
+    kinds: ["リキュール"],
   },
   {
     words: ["スイーツ", "お菓子", "甘いもの"],
@@ -107,7 +132,7 @@ const aliases: Alias[] = [
     ["せんべい", "煎餅"],
     ["めんたいこ", "明太子", "めんたい", "明太"],
     ["わらびもち", "わらび餅"],
-    ["どらやき", "どら焼", "銅鑼"],
+    ["どら", "どらやき", "どら焼", "銅鑼"],
     ["ばうむくーへん", "ばーむくーへん", "ばうむ", "ばーむ"],
     ["いちご", "苺"],
     ["くり", "栗"],
@@ -129,7 +154,11 @@ const weights: Record<Field, number> = {
   q: 10,
 };
 function matchScore(value: string, word: string, field: Field) {
-  if (!normalize(value).includes(word)) return 0;
+  const normalized = normalize(value);
+  if (!normalized.includes(word)) return 0;
+  // 略語「どら」は「ドライ…」だけの位置には一致させない。
+  if (field === "n" && word === "どら" && !/どら(?!い)/.test(normalized))
+    return 0;
   const prefix =
     (field === "n" || field === "m") &&
     fold(value)
@@ -139,17 +168,33 @@ function matchScore(value: string, word: string, field: Field) {
       );
   return weights[field] + (prefix ? 15 : 0);
 }
-const isSake = (item: Item) =>
-  item.g === "酒" &&
-  !/梅酒|ワイン|ビール|リキュール|焼酎|果実酒|ウイスキー|ジン|ウォッカ|ラム/.test(
-    item.n,
+const preparedMakerNames = Object.fromEntries(
+  Object.entries(makerNames).map(([maker, names]) => [
+    maker,
+    [...names.yomi, ...names.en].map(normalize),
+  ]),
+);
+function makerNameScore(maker: string, word: string) {
+  if (word.length < 2) return 0;
+  // 品名・ジャンル・地名の言い換えは、店名の読みの途中に一致させない。
+  const prefixOnly = preparedAliases.some((alias) =>
+    alias.keys.some((key) => word.startsWith(key)),
   );
+  let best = 0;
+  for (const value of preparedMakerNames[maker] ?? []) {
+    const prefix = value.startsWith(word);
+    if (prefix || (!prefixOnly && word.length >= 3 && value.includes(word)))
+      best = Math.max(best, (weights.m + (prefix ? 15 : 0)) * 0.9);
+  }
+  return best;
+}
+const isSake = (item: Item) => drinkKind(item) === "日本酒";
 
 /** 全語が一致した場合だけ、語ごとの最良点の合計を返す。 */
 export function searchScore(item: Item, words: string[]): number | null {
   let total = 0;
   for (const word of words) {
-    let best = 0;
+    let best = makerNameScore(item.m, word);
     for (const field of Object.keys(weights) as Field[]) {
       // 地方は言い換え経由だけで照合し、「北海道・東北」の混同を防ぐ。
       if (field === "r") continue;
@@ -163,6 +208,9 @@ export function searchScore(item: Item, words: string[]): number | null {
       for (const key of alias.keys) {
         if (!word.startsWith(key)) continue;
         const suffix = word.slice(key.length);
+        const kind = drinkKind(item);
+        if (!suffix && kind && alias.kinds?.includes(kind))
+          best = Math.max(best, weights.g * 0.9);
         for (const value of alias.values) {
           for (const text of alias.field === "t" ? item.t : [item[alias.field]])
             best = Math.max(
@@ -195,13 +243,22 @@ export function searchSuggestions(items: Item[], q: string): string[] {
   if (!words.length) return [];
   if (items.some((item) => searchScore(item, words) !== null)) return [];
   const candidates = [
-    ...items.flatMap((i) => [i.n, i.m]),
-    ...aliases.flatMap((a) => a.words),
+    ...items.flatMap((i) => [
+      { label: i.n, value: i.n },
+      { label: i.m, value: i.m },
+      ...(preparedMakerNames[i.m] ?? []).map((value) => ({
+        label: i.m,
+        value,
+      })),
+    ]),
+    ...aliases.flatMap((a) =>
+      a.words.map((value) => ({ label: value, value })),
+    ),
   ];
   const seen = new Set<string>();
   return candidates
-    .flatMap((label) => {
-      const value = normalize(label);
+    .flatMap(({ label, value: text }) => {
+      const value = normalize(text);
       if (!value || seen.has(value) || words.includes(value)) return [];
       seen.add(value);
       const rank = Math.min(
@@ -217,6 +274,10 @@ export function searchSuggestions(items: Item[], q: string): string[] {
       return Number.isFinite(rank) ? [{ label, rank }] : [];
     })
     .sort((a, b) => a.rank - b.rank || a.label.length - b.label.length)
+    .filter(
+      (candidate, index, all) =>
+        all.findIndex((other) => other.label === candidate.label) === index,
+    )
     .slice(0, 5)
     .map((candidate) => candidate.label);
 }

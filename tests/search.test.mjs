@@ -1,3 +1,4 @@
+import { drinkKind } from "../.test-build/drinkKind.js";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -32,6 +33,71 @@ const ids = (rows, conditions = {}) =>
   filterSort(rows, { ...defaults, ...conditions }).map((r) => r.item.id);
 
 describe("検索", () => {
+  it("確認済みの店名の読み・英字で検索し、他店には一致させない", () => {
+    for (const [m, queries] of [
+      ["六花亭", ["ろっかてい", "rokkatei", "ROKKATEI", "ロッカテイ"]],
+      ["ロイズ", ["ROYCE", "ろいず"]],
+      ["虎屋(とらや)", ["toraya", "とらや"]],
+      ["獺祭", ["dassai", "だっさい"]],
+      ["モロゾフ", ["Morozoff"]],
+      ["崎陽軒", ["きようけん"]],
+      ["北菓楼", ["きたかろう"]],
+    ]) {
+      for (const q of queries) {
+        assert.notEqual(score(item({ m }), q), null, q);
+        assert.equal(score(item({ m: "別の店" }), q), null, q);
+      }
+    }
+  });
+  it("店名の読み・英字は1文字を除外し、2文字は先頭だけ照合する", () => {
+    assert.equal(score(item({ m: "ロイズ" }), "ろい"), 80);
+    assert.equal(score(item({ m: "北菓楼" }), "かろ"), null);
+    assert.equal(score(base, "ろ"), null);
+    assert.equal(score(base, "ろっかてい"), 80 * 0.9);
+    assert.equal(score(base, "っかてい"), 65 * 0.9);
+    assert.equal(score(base, "六花亭"), 80);
+    assert.equal(score(item({ n: "ろっかてい" }), "ろっかてい"), 115);
+    assert.equal(score(item({ m: "未確認店" }), "みかくにん"), null);
+  });
+  it("せんべいは店名の読みの途中に一致せず、品名には一致する", () => {
+    const m = "平治煎餅本店";
+    assert.equal(score(item({ m, n: "平治最中" }), "せんべい"), null);
+    for (const n of ["平治煎餅", "せんべい詰合せ"])
+      assert.notEqual(score(item({ m, n }), "せんべい"), null, n);
+    assert.equal(score(item({ m, n: "平治最中" }), "せんべいほんてん"), null);
+  });
+  it("へいじで平治煎餅本店の品に一致する", () => {
+    for (const n of ["平治最中", "平治煎餅"])
+      assert.equal(
+        score(item({ m: "平治煎餅本店", n }), "へいじ"),
+        80 * 0.9,
+        n,
+      );
+  });
+  it("店名の読みでも全語ANDで地域と品名を絞り込む", () => {
+    const rows = [
+      result({ id: 1, n: "マルセイ バターサンド", p: "帯広" }),
+      result({ id: 2, n: "羊羹", p: "札幌" }),
+      result({ id: 3, n: "マルセイ", m: "別の店", p: "帯広" }),
+    ];
+    assert.deepEqual(ids(rows, { q: "ろっかてい 帯広" }), [1]);
+    assert.deepEqual(ids(rows, { q: "ろっかてい マルセイ" }), [1]);
+  });
+  it("読み・英字のつづり違いには店名を候補として表示する", () => {
+    for (const q of ["rokatei", "ろっかてえ"])
+      assert.ok(searchSuggestions([base, base], q).includes("六花亭"), q);
+    for (const q of ["ろっかてい", "ROKKATEI", "ろっかて"])
+      assert.deepEqual(searchSuggestions([base], q), []);
+    assert.deepEqual(
+      searchSuggestions([item({ n: "rokatei" })], "rokatei"),
+      [],
+    );
+    assert.equal(
+      searchSuggestions([base, base], "rokatei").filter((s) => s === "六花亭")
+        .length,
+      1,
+    );
+  });
   it("カナ・幅・大小・長音・記号を同じ表記にする", () => {
     assert.equal(
       normalize("ﾏﾙｾｲ・バターサンド ＡＢＣ"),
@@ -197,5 +263,90 @@ describe("検索", () => {
     assert.equal(new Set(suggestions).size, suggestions.length);
     assert.deepEqual(searchSuggestions([base], "　"), []);
     assert.deepEqual(searchSuggestions([base], "全く存在しない長い文字列"), []);
+  });
+});
+
+const drinks = [
+  ["久保田 萬寿", "朝日酒造", "日本酒"],
+  ["雨下 -uka-", "山梨銘醸", "日本酒"],
+  ["甲子プレミアムセット", "飯沼本家", "日本酒"],
+  ["立山梅酒", "立山酒造", "梅酒"],
+  ["高島雄町IPA", "宮下酒造", "ビール"],
+  ["安心院ワイン", "三和酒類", "ワイン"],
+  ["〈玉〉金霧島", "霧島酒造", "焼酎"],
+  ["忠孝15年古酒40度", "忠孝酒造", "泡盛"],
+  ["梅乃宿 あらごしいちご", "梅乃宿酒造", "リキュール"],
+  ["美珀", "さぬきワイナリー", null],
+].map(([n, m, kind]) => ({ item: item({ n, m, g: "酒" }), kind }));
+
+describe("酒の種類とどらの略語", () => {
+  it("品名を優先して種類を判定し、和菓子は判定しない", () => {
+    for (const row of drinks)
+      assert.equal(drinkKind(row.item), row.kind, row.item.n);
+    assert.equal(drinkKind(item({ n: "純米和菓子", m: "朝日酒造" })), null);
+    for (const m of ["三和酒類", "鈴廣", "中田食品"])
+      assert.equal(drinkKind(item({ n: "不明", m, g: "酒" })), null);
+  });
+  it("日本酒・焼酎・泡盛は種類の表から検索できる", () => {
+    for (const row of drinks) {
+      assert.equal(
+        score(row.item, "日本酒") !== null,
+        row.kind === "日本酒",
+        row.item.n,
+      );
+      assert.equal(
+        score(row.item, "焼酎") !== null,
+        ["焼酎", "泡盛"].includes(row.kind),
+        row.item.n,
+      );
+      assert.equal(
+        score(row.item, "泡盛") !== null,
+        row.kind === "泡盛",
+        row.item.n,
+      );
+      for (const q of ["酒", "お酒"]) assert.notEqual(score(row.item, q), null);
+    }
+  });
+  it("種類の読みと言い換えはジャンルの重みで一致する", () => {
+    for (const [q, kind] of [
+      ["地酒", "日本酒"],
+      ["清酒", "日本酒"],
+      ["にほんしゅ", "日本酒"],
+      ["しょうちゅう", "焼酎"],
+      ["あわもり", "泡盛"],
+      ["わいん", "ワイン"],
+      ["うめしゅ", "梅酒"],
+      ["クラフトビール", "ビール"],
+      ["果実酒", "リキュール"],
+    ]) {
+      const row = drinks.find((row) => row.kind === kind);
+      assert.equal(
+        score(row.item, q),
+        normalize(row.item.n).includes(normalize(q)) ? 100 : 35 * 0.9,
+        q,
+      );
+    }
+    assert.ok(
+      score(item({ n: "日本酒 純米", g: "酒" }), "日本酒") >
+        score(drinks[0].item, "日本酒"),
+    );
+  });
+  it("どらの各表記は略称にも一致し、ドライだけには一致しない", () => {
+    const names = [
+      "福どら詰合せ",
+      "夢どら クリーム小倉",
+      "どら茶ん",
+      "ぷりんどら",
+      "酪餡堂チーズ銅鑼ケーキ",
+    ];
+    for (const q of ["どら", "どらやき", "どら焼", "ドラ焼き", "銅鑼"]) {
+      for (const n of names)
+        assert.notEqual(score(item({ n }), q), null, q + n);
+      for (const n of ["ドライケーキ", "ドライフルーツ"])
+        assert.equal(score(item({ n }), q), null, q + n);
+    }
+    assert.notEqual(score(item({ n: "ドライフルーツと福どら" }), "どら"), null);
+    const rows = ["ドライケーキ", ...names].map((n, id) => result({ n, id }));
+    assert.ok(!ids(rows, { q: "どら" }).includes(0));
   });
 });
