@@ -42,7 +42,7 @@ id,品名,出典ページ,画像URL,取得結果,理由
 41,かもめの玉子,https://saitoseika.store/item-detail/1420912,https://image.raku-uru.jp/01/21687/1318/kamo_1751677552230.jpg,取得,og:image
 42,りんごかもめの玉子,https://saitoseika.store/item-detail/1420900,https://image.raku-uru.jp/01/21687/20/6_thumg_1661922935992.jpg,取得,og:image
 43,お芋わかきもかもめの玉子,https://saitoseika.store/item-detail/1252989,https://image.raku-uru.jp/01/21687/127/265_thumb_1661923205610.jpg,取得,og:image
-44,プレミアムかもめの玉子,,,取れなかった,出典URLなし
+44,プレミアムかもめの玉子,https://saitoseika.co.jp/kamomenotamago/,https://saitoseika.co.jp/wp/wp-content/themes/saito/images/kamomenotamago/special/premium_img.png,取得,公式サイト
 45,かまど神,https://saitoseika.store/item-detail/1253042,https://image.raku-uru.jp/01/21687/56/49_thumb_1661923036606.jpg,取得,og:image
 46,ころ柿,https://saitoseika.store/item-detail/1253034,https://image.raku-uru.jp/01/21687/69/24_thumb_1661923041228.jpg,取得,og:image
 47,柿羊羹,https://saitoseika.store/item-detail/1253036,https://image.raku-uru.jp/01/21687/1043/Kakiyokan2024_1722297749784.jpg,取得,og:image
@@ -59,9 +59,9 @@ id,品名,出典ページ,画像URL,取得結果,理由
 58,ずんだ団子,https://www.shoeidoh.co.jp/?pid=184035414,https://img06.shop-pro.jp/PA01177/368/product/184035414.png?cmsp_timestamp=20260606161953,取得,og:image
 59,献上田むらの梅,https://www.shoeidoh.co.jp/?cbid=1289855&csid=0&mode=cate,https://img06.shop-pro.jp/PA01177/368/category/1289855_0.jpg?cmsp_timestamp=20220820103614,取得,og:image
 60,かもめのショコらん,https://saitoseika.store/item-detail/1824030,https://image.raku-uru.jp/01/21687/1304/SustainableSyokoran01_1751090529709.jpg,取得,og:image
-61,萩の月(簡易箱),https://www.shop.sanzen.co.jp/shop/g/g3003/,,取れなかった,画像タグなし
-62,伊達絵巻(袋入り),https://www.shop.sanzen.co.jp/shop/g/g1300/,,取れなかった,画像タグなし
-63,パイ倶楽部(袋入り),https://www.shop.sanzen.co.jp/shop/g/g1505/,,取れなかった,画像タグなし
+61,萩の月(簡易箱),https://www.sanzen.co.jp/product/haginotsuki/index.html,https://www.sanzen.co.jp/product/haginotsuki/img/img01.jpg,取得,公式サイト
+62,伊達絵巻(袋入り),https://www.sanzen.co.jp/product/meika/index.html,https://www.sanzen.co.jp/product/meika/img/img01.jpg,取得,公式サイト
+63,パイ倶楽部(袋入り),https://www.sanzen.co.jp/product/meika/index.html,https://www.sanzen.co.jp/product/meika/img/img06.jpg,取得,公式サイト
 64,白松がモナカ 小型,https://www.takashimaya.co.jp/shopping/product.html?p_cd=0000484958&sub_cd=001,https://www.takashimaya.co.jp/sto/image/product/product_image_main/4958/0000484958-001.jpg,取得,og:image
 65,白松がヨーカン,https://monaka.jp/product/shiromatsu-ga-yokan/,https://monaka.jp/wp/wp-content/uploads/2020/09/59f792d9658f2c9c67bf6da5428f87e4.jpg,取得,og:image
 66,栗どら焼,https://monaka.jp/product/shiromatsu-ga-dorayaki/,https://monaka.jp/wp/wp-content/uploads/2020/09/a5421bd4217e4f33e6e5edabba670433-1200x600.jpg,取得,公式商品ページ(調査)
@@ -313,7 +313,7 @@ id,品名,出典ページ,画像URL,取得結果,理由
 312,モナカフロランタン,https://store.goromaruya.com/view/item/000000000055,https://makeshop-multi-images.akamaized.net/goromaruya/itemimages/000000000055_1ju4Wj2.jpg,取得,公式商品ページ(調査)
 313,契りゆべし,https://store.goromaruya.com/view/item/000000000066?category_page_id=all_items,,取れなかった,画像タグなし
 314,大型羊羹 杢目,https://shop.suzukitei.com/?pid=189401936,https://img21.shop-pro.jp/PA01520/165/product/189401936.jpg?cmsp_timestamp=20251117191331,取得,og:image
-315,ミニサイズ羊羹 黒杢目,https://shop.suzukitei.com/?gid=3134051&mode=grp,,取れなかった,画像タグなし
+315,ミニサイズ羊羹 黒杢目,https://www.suzukitei.com/youkan_mini.html,https://www.suzukitei.com/image/kuromokume/159x159_mini05_mb5.jpg,取得,公式サイト
 316,立山 雨晴純米大吟醸,https://tbrewing.official.ec/items/128172821,"https://baseec-img-mng.akamaized.net/images/item/origin/d680b34f186ef35e4a246320ef3b52b6.jpg?imformat=generic&q=90&im=Resize,width=1200,type=normal",取得,og:image
 317,立山 連峰大吟醸,https://tbrewing.official.ec/items/128172824,"https://baseec-img-mng.akamaized.net/images/item/origin/27ceb26d469d576d43e2527f24dc1d6d.jpg?imformat=generic&q=90&im=Resize,width=1200,type=normal",取得,og:image
 318,立山 雄神純米吟醸,https://tbrewing.official.ec/items/128172825,"https://baseec-img-mng.akamaized.net/images/item/origin/c00024ce13d7e47ef3d0e36b704bf123.jpg?imformat=generic&q=90&im=Resize,width=1200,type=normal",取得,og:image
@@ -459,7 +459,7 @@ id,品名,出典ページ,画像URL,取得結果,理由
 458,青柳 小倉サンド,https://shop.aoyagiuirou.co.jp/products/ogura-sand-5,https://shop.aoyagiuirou.co.jp/cdn/shop/products/5_b79aef07-6538-4584-abec-366e6c5387a4_1200x1200.jpg?v=1753976239,取得,og:image
 459,三河小箱,https://www.bisyoku.co.jp/SHOP/S-N9170.html,https://image1.shopserve.jp/bisyoku.co.jp/pic-labo/llimg/mikawakobako.jpg?t=20220627131805,取得,JSON-LD
 460,西条園 抹茶フィナンシェ・ほうじ茶フィナンシェ ギフト箱入り,https://www.shop-matcha.jp/view/item/000000000519,https://makeshop-multi-images.akamaized.net/matchashop/itemimages/000000000519_yLASZqd.jpg,取得,JSON-LD
-461,三河つくだ煮ギフト 花梨,https://www.bisyoku.co.jp/,,取れなかった,画像タグなし
+461,三河つくだ煮ギフト 花梨,https://www.bisyoku.co.jp/index.html,https://www.bisyoku.co.jp/pic-labo/karin.jpg,取得,公式サイト
 462,赤福 折箱,https://shop.akafuku.co.jp/i/00011,https://shop.akafuku.co.jp/img/item/00011/item_oribako08.jpg,取得,JSON-LD
 463,白餅黑餅,https://www.akafuku.co.jp/product/shirokuro/,https://www.akafuku.co.jp/wp/wp-content/uploads/2023/09/nsk05.png,取得,公式商品ページ(調査)
 464,シェル・レーヌ プレーン,https://blanca-shop.jp/item-detail/1032550,https://image.raku-uru.jp/01/20812/1097/2_1768437578945_1200.png,取得,公式商品ページ(調査)
@@ -478,20 +478,20 @@ id,品名,出典ページ,画像URL,取得結果,理由
 477,伊勢茶 ティーバッグ馬缶3缶詰合わせ,https://henbaya.jp/isecha_teabag/,https://henbaya.jp/wp-content/uploads/2026/05/HP_3kan.jpg,取得,公式商品ページ(調査)
 478,平治煎餅 小笠,https://heijisenbei.shop-pro.jp/?pid=173341681,https://img07.shop-pro.jp/PA01425/487/product/173341681.jpg?cmsp_timestamp=20230228200333,取得,og:image
 479,平治最中,https://heijisenbei.shop-pro.jp/?pid=150262878,https://img07.shop-pro.jp/PA01425/487/product/150262878.jpg?cmsp_timestamp=20200416094926,取得,og:image
-480,平治煎餅ショコラ ストロベリー,https://heijisenbei.shop-pro.jp/?mode=srh,,取れなかった,複数の品で共通(2件)
+480,平治煎餅ショコラ ストロベリー,https://www.mistore.jp/shopping/feature/foods_f/r_foodie_100051.html,https://mi-journey.jp/foodie/wp-content/uploads/2024/11/241115honwakasyu9.jpg,取得,百貨店
 481,平治煎餅ショコラ ホワイト,https://heijisenbei.com/products/,https://heijisenbei.com/wps/wp-content/uploads/2022/12/w_chocolat.jpg,取得,公式商品ページ(調査)
-482,ふくみ天平,https://shop.taneya.co.jp/taneya/tc001/70950.html,,取れなかった,ロゴ・共通画像名(default)
-483,栗月下(箱入),https://shop.taneya.co.jp/taneya/tc030/71031.html,,取れなかった,ロゴ・共通画像名(default)
-484,栗饅頭,https://shop.taneya.co.jp/taneya/tc005/70964.html,,取れなかった,ロゴ・共通画像名(default)
-485,斗升最中,https://shop.taneya.co.jp/taneya/tc004/70969.html,,取れなかった,ロゴ・共通画像名(default)
+482,ふくみ天平,https://taneya.jp/okashi/meika/fukumi,https://taneya.jp/upload/okashi/img/fukumitenbin%402x.jpg,取得,公式サイト
+483,栗月下(箱入),https://taneya.jp/okashi/season/kurigekka,https://taneya.jp/upload/okashi/img/kurigekka%402x.jpg,取得,公式サイト
+484,栗饅頭,https://taneya.jp/okashi/meika/kuriman,https://taneya.jp/upload/okashi/img/kurimanjyu%402x.jpg,取得,公式サイト
+485,斗升最中,https://taneya.jp/okashi/meika/masumasu,https://taneya.jp/upload/okashi/img/masumasumonaka%402x.jpg,取得,公式サイト
 486,どらやき(粒餡),https://shop.taneya.co.jp/taneya/tc006/72884.html,,取れなかった,ロゴ・共通画像名(default)
-487,カステラ,https://shop.taneya.co.jp/taneya/tc003/07621.html,,取れなかった,ロゴ・共通画像名(default)
-488,末廣饅頭,https://shop.taneya.co.jp/taneya/tc012/01333.html,,取れなかった,ロゴ・共通画像名(default)
-489,福寿芋,https://shop.taneya.co.jp/taneya/tc029/73310.html,,取れなかった,ロゴ・共通画像名(default)
-490,バームクーヘン BK13,https://shop.taneya.co.jp/clubharie/cc001/12567.html,,取れなかった,ロゴ・共通画像名(default)
-491,リーフパイ,https://shop.taneya.co.jp/clubharie/cc003/18054.html,,取れなかった,ロゴ・共通画像名(default)
-492,フィナンシェ,https://shop.taneya.co.jp/clubharie/cc005/15449.html,,取れなかった,ロゴ・共通画像名(default)
-493,オレンジケーキ OC30,https://shop.taneya.co.jp/clubharie/cc007/11156.html,,取れなかった,ロゴ・共通画像名(default)
+487,カステラ,https://taneya.jp/okashi/meika/castella,https://taneya.jp/upload/okashi/img/castella%402x.jpg,取得,公式サイト
+488,末廣饅頭,https://taneya.jp/okashi/meika/suehiro,https://taneya.jp/upload/okashi/img/suehiromanjyu%402x.jpg,取得,公式サイト
+489,福寿芋,https://taneya.jp/okashi/season/fukujuimo,https://taneya.jp/upload/okashi/img/fukujyuimo%402x.jpg,取得,公式サイト
+490,バームクーヘン BK13,https://clubharie.jp/products/baumkuchen,https://clubharie.jp/upload/ch_okashi/img/baumkuchen/baumkuchnen_main.jpg%402x.jpg,取得,公式サイト
+491,リーフパイ,https://clubharie.jp/products/leafpie,https://clubharie.jp/upload/ch_okashi/img/leafpie/leafpie_main.jpg,取得,公式サイト
+492,フィナンシェ,https://clubharie.jp/products/gateauassort/,https://clubharie.jp/upload/ch_okashi/img/gateauassort/gateauassort_sub2.jpg,取得,公式サイト
+493,オレンジケーキ OC30,https://clubharie.jp/products/orange_cake,https://clubharie.jp/upload/ch_okashi/img/orange_cake/orange_cake_main.jpg%402x.jpg,取得,公式サイト
 494,あも(箱入),https://onlineshop.kanou.com/c/daihyoumeika/amo,https://kanou.itembox.cloud/product/005/000000000544/000000000544-01.jpg?size=xl&t=20260827150731&w=MTIwMA,取得,公式商品ページ(調査)
 495,あも(栗)(箱入),https://onlineshop.kanou.com/c/daihyoumeika/amo/detail-1323130,https://kanou.itembox.cloud/product/005/000000000548/000000000548-01.jpg?size=l&w=ODAw&t=20260827155043,取得,og:image
 496,雅撰 冬ハレ G-101,https://onlineshop.kanou.com/c/daihyoumeika/amo,https://kanou.itembox.cloud/product/005/000000000585/000000000585-01.jpg?size=xl&t=20260929124742&w=MTIwMA,取得,公式商品ページ(調査)
@@ -499,7 +499,7 @@ id,品名,出典ページ,画像URL,取得結果,理由
 498,石山弄月 NI-11,https://onlineshop.kanou.com/c/all-year/dorayaki-monaka/detail-1310153,https://kanou.itembox.cloud/product/005/000000000556/000000000556-01.jpg?size=l&w=ODAw&t=20260828125942,取得,og:image
 499,匠壽庵大石最中 NO-13,https://onlineshop.kanou.com/c/all-year/dorayaki-monaka/detail-1310174,https://kanou.itembox.cloud/product/003/000000000393/000000000393-01.jpg?size=l&w=ODAw&t=20250725173712,取得,og:image
 500,小あゆ煮 パック,https://shop.ayukimura.co.jp/view/item/000000000196,https://makeshop-multi-images.akamaized.net/asaokazu/shopimages/96/01/4_000000000196.jpg?1676190223=,取得,公式商品ページ(調査)
-501,山椒入小あゆ煮C KSC,https://shop.ayukimura.co.jp/,,取れなかった,画像タグなし
+501,山椒入小あゆ煮C KSC,https://store.shopping.yahoo.co.jp/ayukimura/su002.html,https://item-shopping.c.yimg.jp/i/n/ayukimura_su002,取得,公式ショップ(Yahoo)
 502,柚餅 個包装2個入,https://shop.tsuruyayoshinobu.jp/collections/teiban/products/23100003,https://shop.tsuruyayoshinobu.jp/cdn/shop/products/1_6a9408fb-aebf-4cc1-b2ae-f13245b47405_1200x1200.jpg?v=1764900444,取得,og:image
 503,京観世,https://shop.tsuruyayoshinobu.jp/products/20200001,https://shop.tsuruyayoshinobu.jp/cdn/shop/products/01_1.jpg?v=1776753409,取得,公式商品ページ(調査)
 504,つばらつばら,https://shop.tsuruyayoshinobu.jp/products/10610031,https://shop.tsuruyayoshinobu.jp/cdn/shop/files/2024_PK__5.jpg?v=1706930962,取得,公式商品ページ(調査)
@@ -519,7 +519,7 @@ id,品名,出典ページ,画像URL,取得結果,理由
 518,カネール シナモン,https://shop.shogoin.co.jp/p/item-detail/detail/i58.html,https://pict1.ec-sites.jp/img/1905/544940/200/20250702113034.jpg,取得,og:image
 519,霜の橋 小袋,https://shop.shogoin.co.jp/p/item-detail/detail/i18.html,https://pict1.ec-sites.jp/img/1905/152806/200/20180223144000.jpg,取得,og:image
 520,生八ッ橋,https://shop.shogoin.co.jp/p/item-detail/detail/i55.html,https://pict1.ec-sites.jp/img/1905/193222/200/20180820152046.jpg,取得,og:image
-521,阿闍梨餅,https://www.takashimaya.co.jp/shopping/search.html?search_location_type=1&search_word=%E9%98%BF%E9%97%8D%E6%A2%A8%E9%A4%85,,取れなかった,画像タグなし
+521,阿闍梨餅,https://www.jr-plus.co.jp/gift/001611/,https://www.jr-plus.co.jp/files/past/1_%E9%98%BF%E9%97%8D%E6%A2%A8%E9%A4%85.jpg,取得,駅
 522,元祖大阪みたらしだんご,https://www.mukashin.com/view/item/000000000068,https://gigaplus.makeshop.jp/mukashin1591/image/products/mitarashi/mitarashi_sub_2.jpg,取得,公式商品ページ(調査)
 523,こがしバターケーキ 専用箱,https://www.mukashin.com/view/item/000000000738,https://gigaplus.makeshop.jp/mukashin1591/image/products/buttercake/sub_iti2024.jpg,取得,公式商品ページ(調査)
 524,こがしバターサブレ,https://www.mukashin.com/view/item/000000000070,https://gigaplus.makeshop.jp/mukashin1591/image/products/buttersable/buttersable_sub.jpg,取得,公式商品ページ(調査)
@@ -557,7 +557,7 @@ id,品名,出典ページ,画像URL,取得結果,理由
 556,ケーク・オ・いちじく ミニ,https://shop.tsumagari.co.jp/page/shop/item.php?iid=HB100,https://shop.tsumagari.co.jp/picture/item/HB100_L.jpg?1793080849,取得,og:image
 557,津曲きまま,https://shop.tsumagari.co.jp/page/shop/item.php?iid=HB470,https://shop.tsumagari.co.jp/picture/item/HB470_L.jpg?1793080849,取得,og:image
 558,フルレット,https://shop.tsumagari.co.jp/page/shop/item.php?iid=ST4090,https://shop.tsumagari.co.jp/picture/item/ST4090_L.jpg?1793080849,取得,og:image
-559,福寿 純米吟醸,https://we.enjoyfukuju.com/products,,取れなかった,複数の品で共通(2件)
+559,福寿 純米吟醸,https://www.shushinkan.co.jp/products/,https://www.shushinkan.co.jp/news/wp-content/uploads/2024/01/junmaiginjo.jpg,取得,公式サイト
 560,福寿 大吟醸 雫酒 ジュエリーボトル,https://we.enjoyfukuju.com/products,,取れなかった,複数の品で共通(2件)
 561,生酛造り 大吟醸純米 極上白鷹,https://hakutaka.jp/blog/article.html?category=%E5%A4%A7%E5%90%9F%E9%86%B8%E7%B4%94%E7%B1%B3,https://hakutaka.jp/images/items/items_02-2.jpg,取得,公式商品ページ(調査)
 562,大和三山,https://www.tenpyoan-shop.com/SHOP/018005.html,https://image1.shopserve.jp/tenpyoan-shop.com/pic-labo/llimg/yamatosanzan5.jpg?t=20150413033039,取得,JSON-LD
@@ -578,7 +578,7 @@ id,品名,出典ページ,画像URL,取得結果,理由
 577,柿けーき,https://a-kaki.com/SHOP/K61018.html,https://image1.shopserve.jp/a-kaki.com/pic-labo/products_photo_f1_0.jpg,取得,公式商品ページ(調査)
 578,干し柿ようかん 通常便,https://a-kaki.com/SHOP/K3117.html,https://image1.shopserve.jp/a-kaki.com/pic-labo/hosigaki4_01.jpg,取得,公式商品ページ(調査)
 579,梅乃宿 あらごしいちご,https://shop.umenoyado.com/Form/Product/ProductDetail.aspx?cat=001&pid=130591&shop=0,https://shop.umenoyado.com/Contents/ProductImages/0/130591_LL.jpg,取得,公式商品ページ(調査)
-580,天下一 純米大吟醸,https://shop.umenoyado.com/Form/Product/ProductDetail.aspx?shop=0&pid=004351&cat=002,,取れなかった,画像タグなし
+580,天下一 純米大吟醸,https://www.umenoyado.com/products/tenkaichi-junmai-daiginjo/,https://www.umenoyado.com/wp2024/wp-content/uploads/2026/01/%E5%A4%A9%E4%B8%8B%E4%B8%80-%E7%B4%94%E7%B1%B3%E5%A4%A7%E5%90%9F%E9%86%B8.png,取得,公式サイト
 581,超あらごし ほぼみかん,https://shop.umenoyado.com/Form/Product/ProductDetail.aspx?cat=001&pid=101096&shop=0,https://shop.umenoyado.com/Contents/ProductImages/0/101096_LL.jpg,取得,公式商品ページ(調査)
 582,かげろう,https://shop.fukubishi.co.jp/fs/fukubishi/kagerou/kagerou10,https://shop.fukubishi.co.jp/shop/item/fukubishi/picture/goods/35_1.jpg,取得,og:image
 583,柚もなか,https://shop.fukubishi.co.jp/fs/fukubishi/yuzumonaka12,https://shop.fukubishi.co.jp/shop/item/fukubishi/picture/goods/7_1.jpg,取得,og:image
@@ -586,21 +586,21 @@ id,品名,出典ページ,画像URL,取得結果,理由
 585,川添茶詰め合わせ,https://shop.fukubishi.co.jp/fs/fukubishi/kawzoecha-tsumeawase,https://shop.fukubishi.co.jp/shop/item/fukubishi/picture/goods/38_1.jpg,取得,og:image
 586,手焼きバームクーヘン 詰め合わせ箱,https://shop.fukubishi.co.jp/fs/fukubishi/teyakibaumkuchen6,https://shop.fukubishi.co.jp/shop/item/fukubishi/picture/goods/73_1.jpg,取得,og:image
 587,生かげろう プレーン,https://shop.fukubishi.co.jp/fs/fukubishi/namakagerou/gd125,https://shop.fukubishi.co.jp/shop/item/fukubishi/picture/goods/125_1.jpg,取得,og:image
-588,しらら,https://www.nakatafoods.jp/shop/default.aspx,,取れなかった,複数の品で共通(8件)
+588,しらら,https://store.shopping.yahoo.co.jp/nakatafoods/1028.html,https://shopping.c.yimg.jp/lib/nakatafoods/nakatafoods_1028_1.jpg,取得,公式ショップ(Yahoo)
 589,梅ぼし田舎漬 減塩仕込み,https://www.nakatafoods.co.jp/product/detail/T_inaka_gen-en/,https://www.nakatafoods.co.jp/cms/JSH/T_inaka_gen-en_1kg.jpg,取得,公式商品ページ(調査)
 590,はちみつ梅 減塩,https://www.nakatafoods.co.jp/product/detail/T_hachi_genen/,https://www.nakatafoods.co.jp/cms/JSH/T_hachi_genen.jpg,取得,公式商品ページ(調査)
-591,はちみつ完熟梅,https://www.nakatafoods.jp/shop/default.aspx,,取れなかった,複数の品で共通(8件)
-592,梅ぼし田舎漬,https://www.nakatafoods.jp/shop/default.aspx,,取れなかった,複数の品で共通(8件)
+591,はちみつ完熟梅,https://store.shopping.yahoo.co.jp/nakatafoods/91011.html,https://item-shopping.c.yimg.jp/i/n/nakatafoods_91011,取得,公式ショップ(Yahoo)
+592,梅ぼし田舎漬,https://store.shopping.yahoo.co.jp/nakatafoods/inaka-1kg.html,https://item-shopping.c.yimg.jp/i/n/nakatafoods_inaka-1kg,取得,公式ショップ(Yahoo)
 593,紀州南高 完熟梅酒 樽,https://www.nakatafoods.co.jp/product/detail/23,https://www.nakatafoods.co.jp/cms/seihinjouhou/umesyu/10011-%E7%B4%80%E5%B7%9E%E5%8D%97%E9%AB%98%E5%AE%8C%E7%86%9F%E6%A2%85%E9%85%92-%E6%A8%BD-720ml-%E8%BA%AB.jpg,取得,公式商品ページ(調査)
 594,紀州の梅酒 梅実入,https://www.nakatafoods.co.jp/product/detail/30,https://www.nakatafoods.co.jp/cms/seihinjouhou/umesyu/miiri.jpg,取得,公式商品ページ(調査)
 595,2015年度樽仕込み 紀州南高 完熟梅酒 樽 10年熟成,https://www.nakatafoods.jp/shop/default.aspx,,取れなかった,複数の品で共通(8件)
 596,果樹園の濃厚みかんジュレまるごと1個入,https://sowakajuen.com/c/mikan-sweets/mikanjelly/mikanjelly-marugoto/items_006-002,https://sowakajuen.itembox.cloud/product/000/000000000026/000000000026-01.jpg?size=l&w=ODAw&t=20200826161154,取得,og:image
 597,飲むみかん6本ギフト,https://sowakajuen.com/c/mikan-gift/items_028-003,https://sowakajuen.itembox.cloud/product/001/000000000133/000000000133-01.jpg?size=l&w=ODAw&t=20260904153245,取得,og:image
-598,有田みかんジュース飲み比べ6本ギフト,https://sowakajuen.com/p/search,,取れなかった,画像タグなし
+598,有田みかんジュース飲み比べ6本ギフト,https://item.rakuten.co.jp/sowakajuen/028-004/,https://image.rakuten.co.jp/sowakajuen/cabinet/itemimage/juice/06003732/imgrc0148451421.jpg,取得,公式ショップ(楽天)
 599,おふくろスムージー有田みかん,https://sowakajuen.com/c/mikan-sweets/ofukuro-smoothie/smoothie-mikan,https://sowakajuen.itembox.cloud/product/000/000000000054/000000000054-01.jpg?size=xl&t=20210511190038&w=MTIwMA,取得,公式商品ページ(調査)
-600,もっちり有田みかんゼリー,https://sowakajuen.com/c/mikan-sweets,,取れなかった,画像タグなし
+600,もっちり有田みかんゼリー,https://item.rakuten.co.jp/sowakajuen/014-103/,https://image.rakuten.co.jp/sowakajuen/cabinet/itemimage/kakou/08301853/imgrc0142182969.jpg,取得,公式ショップ(楽天)
 601,ゆら早生,https://sowakajuen.com/c/seasonal-mikan/autumn-mikan/mikan-yurawase/items_034-001,https://sowakajuen.itembox.cloud/product/001/000000000156/000000000156-01.jpg?size=l&t=20240828090407&w=ODAw,取得,公式商品ページ(調査)
-602,打吹公園だんご,https://www.kouendango.com/items/,,取れなかった,画像タグなし
+602,打吹公園だんご,https://www.tottori-guide.jp/806/1860/1859/32065.html,https://www.tottori-guide.jp/files/55553.JPG,取得,自治体・観光協会
 603,おしどりの契り,https://www.kouendango.com/items/,https://www.kouendango.com/images/oshidori06.jpg,取得,公式商品ページ(調査)
 604,しょこら和さんぼん,https://www.kouendango.com/items/,https://www.kouendango.com/images/c-wasanbon/item-pic.jpg,取得,公式商品ページ(調査)
 605,焼印入バウムクーヘン(感謝),https://www.oenosato.com/c/category/category_sp/60352,https://oenosato.itembox.cloud/product/006/000000000666/000000000666-01.jpg?size=l&w=ODAw&t=20210220173548,取得,og:image
@@ -615,11 +615,11 @@ id,品名,出典ページ,画像URL,取得結果,理由
 614,千代むすび 純米 春陽,https://www.chiyomusubi.co.jp/products/detail/412,https://www.chiyomusubi.co.jp/html/upload/save_image/0526115553_6a150bb99e3a4.jpg,取得,og:image
 615,千代むすび 純米吟醸 強力60(化粧箱入り),https://www.chiyomusubi.co.jp/products/detail/365,https://www.chiyomusubi.co.jp/html/upload/save_image/0415150943_67fdf8273f732.png,取得,og:image
 616,星空舞糀甘酒 6本セット,https://www.chiyomusubi.co.jp/products/detail/115,https://www.chiyomusubi.co.jp/html/upload/save_image/05281841_60b0bac6554d3.jpg,取得,og:image
-617,因幡の白うさぎ,https://web.tenmaya.co.jp/netshop/disp/CSfGoodsPage_001.jsp?GOODS_NO=139647583&dispNo=001003002009003,,取れなかった,画像タグなし
+617,因幡の白うさぎ,https://www.anafesta.com/airports/ygj/23_1217/,https://www.anafesta.com/assets/images/products/23_1217_01.jpg,取得,空港
 618,すなば珈琲クランチ,https://web.tenmaya.co.jp/netshop/disp/CSfGoodsPage_001.jsp?GOODS_NO=139656978&dispNo=001003002009003,,取れなかった,画像タグなし
-619,大山ソフトクリームサンドクッキー,https://web.tenmaya.co.jp/netshop/disp/CSfGoodsPage_001.jsp?GOODS_NO=139656974&dispNo=001003002009003,,取れなかった,画像タグなし
+619,大山ソフトクリームサンドクッキー,https://www.anafesta.com/airports/ygj/23_1225/,https://www.anafesta.com/assets/images/products/23_1225_01.jpg,取得,空港
 620,すなば珈琲クリームサンド,https://web.tenmaya.co.jp/netshop/disp/CSfGoodsPage_001.jsp?GOODS_NO=139656981&dispNo=001003002009003,,取れなかった,画像タグなし
-621,白ウサギフィナンシェ,https://web.tenmaya.co.jp/netshop/disp/CSfGoodsPage_001.jsp?GOODS_NO=139647589&dispNo=001003002009003,,取れなかった,画像タグなし
+621,白ウサギフィナンシェ,https://www.anafesta.com/airports/ygj/23_1215/,https://www.anafesta.com/assets/images/products/23_1215_01.jpg,取得,空港
 622,若草,https://netshop.saiundo.co.jp/view/item/000000000009,https://makeshop-multi-images.akamaized.net/wakakusa1874/shopimages/09/00/1_000000000009.jpg?1759378491=,取得,公式商品ページ(調査)
 623,あんぱん饅頭,https://netshop.saiundo.co.jp/view/item/000000000184,https://makeshop-multi-images.akamaized.net/wakakusa1874/shopimages/84/01/6_000000000184.jpg?1782293734=,取得,公式商品ページ(調査)
 624,だんだん,https://netshop.saiundo.co.jp/view/item/000000000026?category_page_id=ct18,https://makeshop-multi-images.akamaized.net/wakakusa1874/shopimages/26/00/5_000000000026.jpg?1782350558=,取得,公式商品ページ(調査)
@@ -732,7 +732,7 @@ id,品名,出典ページ,画像URL,取得結果,理由
 731,五名の栗,https://e-takara.jp/item/%E4%BA%94%E5%90%8D%E3%81%AE%E6%A0%97-1%E6%9C%AC/,https://e-takara.jp/wp-content/uploads/2020/09/%E4%BA%94%E5%90%8D%E3%81%AE%E6%A0%97550.jpg,取得,公式商品ページ(調査)
 732,五名の玉栗 8個入(進物箱入り),https://e-takara.jp/item/%E4%BA%94%E5%90%8D%E3%81%AE%E7%8E%89%E6%A0%97%E3%80%808%E5%80%8B%E5%85%A5%EF%BC%88%E5%8C%96%E7%B2%A7%E7%AE%B1%E5%85%A5%E3%82%8A%EF%BC%89/,https://e-takara.jp/wp-content/uploads/2019/09/%E4%BA%94%E5%90%8D%E3%81%AE%E5%A4%A7%E6%A0%97.jpg,取得,公式商品ページ(調査)
 733,シャワーモンブラン大福 4個入(冷凍・進物箱入り),https://e-takara.jp/item/%E3%82%B7%E3%83%A3%E3%83%AF%E3%83%BC%E3%83%A2%E3%83%B3%E3%83%96%E3%83%A9%E3%83%B3%E5%A4%A7%E7%A6%8F%E3%80%804%E5%80%8B%E5%85%A5%E5%8C%96%E7%B2%A7%E7%AE%B1%E5%85%A5%E3%82%8A%E5%86%B7%E5%87%8D/,https://e-takara.jp/wp-content/uploads/2022/10/%E3%82%B7%E3%83%A3%E3%83%AF%E3%83%BC%E3%83%A2%E3%83%B3%E3%83%96%E3%83%A9%E3%83%B3%E5%A4%A7%E7%A6%8F4%E5%80%8B%E5%85%A5550.jpg,取得,公式商品ページ(調査)
-734,クアトロえびチーズ QU-30,https://www.quattro-ebicheese.com/shopping01.html,,取れなかった,画像タグなし
+734,クアトロえびチーズ QU-30,https://www.shimahide.com/fs/shimahide/gd34,https://www.shimahide.com/shop/item/shimahide/picture/goods/36_1.jpg,取得,公式サイト
 735,えびせんべい S-30,https://www.shimahide.com/fs/shimahide/gr5/gd460,https://www.shimahide.com/shop/item/shimahide/picture/goods/460_1_expand.jpg,取得,og:image
 736,大海老と小海老ミンチの濃厚欧風カレー お得用3個セット,https://www.shimahide.com/fs/shimahide/c/curry2,https://www.shimahide.com/itemimg/curry/T202.jpg,取得,公式商品ページ(調査)
 737,讃岐牛・オリーブ牛 サーロインステーキ ギフトセット(化粧箱入り),https://www.meatpia-net.co.jp/,,取れなかった,画像タグなし
@@ -793,14 +793,14 @@ id,品名,出典ページ,画像URL,取得結果,理由
 792,筑紫もち,https://online.josuian.jp/collections/tsukushimochi,https://online.josuian.jp/cdn/shop/collections/f93bcf50b4d6e4026d4426008cfa5851.jpg?v=1643176883,取得,og:image
 793,味の明太子 樽入り,https://itoya-mentaiko.co.jp/products/,,取れなかった,ロゴ・共通画像名(ogp)
 794,味の明太子,https://117hakuhaku.com/experience/shop/,,取れなかった,複数の品で共通(8件)
-795,数の子明太子,https://117hakuhaku.com/experience/shop/,,取れなかった,複数の品で共通(8件)
+795,数の子明太子,https://item.rakuten.co.jp/fukuya/5011253/,https://image.rakuten.co.jp/fukuya/cabinet/kumiawaseset2023/20151_780_02.jpg,取得,公式ショップ(楽天)
 796,ツブチューブ プレーンレギュラー,https://117hakuhaku.com/experience/shop/,,取れなかった,複数の品で共通(8件)
 797,味な油漬け どこでも明太子,https://www.fukuya.jp/products/%E5%91%B3%E3%81%AA%E6%B2%B9%E6%BC%AC%E3%81%91-%E3%81%A9%E3%81%93%E3%81%A7%E3%82%82%E6%98%8E%E5%A4%AA%E5%AD%90/,https://www.fukuya.jp/wp/wp-content/uploads/2024/05/%E3%81%A9%E3%81%93%E3%81%A7%E3%82%82%E6%98%8E%E5%A4%AA%E5%AD%90%E2%91%A0-1-1024x1024.png,取得,公式商品ページ(調査)
 798,明太子のり,https://117hakuhaku.com/experience/shop/,,取れなかった,複数の品で共通(8件)
 799,味のめんたいマヨ,https://www.fukuya.jp/products/%E5%91%B3%E3%81%AE%E3%82%81%E3%82%93%E3%81%9F%E3%81%84%E3%83%9E%E3%83%A8-%EF%BC%92%EF%BC%92%EF%BC%90g/,https://www.fukuya.jp/wp/wp-content/uploads/2024/06/1%E3%80%80%E5%91%B3%E3%81%AE%E3%82%81%E3%82%93%E3%81%9F%E3%81%84%E3%83%9E%E3%83%A8220g.png,取得,公式商品ページ(調査)
 800,明太せんべい ふわぴりり,https://www.fukuya.jp/products/%E3%81%B5%E3%82%8F%E3%81%B4%E3%82%8A%E3%82%8A%E6%98%8E%E5%A4%AA%E3%81%9B%E3%82%93%E3%81%B9%E3%81%84%EF%BC%94%EF%BC%90%E6%9E%9A/,https://www.fukuya.jp/wp/wp-content/uploads/2024/05/%E3%81%B5%E3%82%8F%E3%81%B4%E3%82%8A%E3%82%8A%E6%98%8E%E5%A4%AA%E3%81%9B%E3%82%93%E3%81%B9%E3%81%84-1024x1024.png,取得,公式商品ページ(調査)
 801,博多中洲明太菓子 すずめの卵,https://www.fukuya.jp/products/%E5%8D%9A%E5%A4%9A%E4%B8%AD%E6%B4%B2%E6%98%8E%E5%A4%AA%E8%8F%93%E5%AD%90-%E3%81%99%E3%81%9A%E3%82%81%E3%81%AE%E5%8D%B5-%E7%AE%B1%E5%85%A5/,https://www.fukuya.jp/wp/wp-content/uploads/2024/05/s_0805%E3%81%B5%E3%81%8F%E3%82%84292-1024x682.jpg,取得,公式商品ページ(調査)
-802,さが錦,https://www.muraokaya.co.jp/saganishiki/index.html,,取れなかった,画像タグなし
+802,さが錦,https://www.anafesta.com/airports/hsg/23_1541/,https://www.anafesta.com/assets/images/products/23_1541_01.jpg,取得,空港
 803,丸ぼうろ,https://www.muraokaya.co.jp/marubouro/index.html,,取れなかった,画像タグなし
 804,鍋島さま 中丸型,https://www.muraokaya.co.jp/nabeshimasama/index.html,,取れなかった,画像タグなし
 805,小豆のかくれんぼ,https://www.muraokaya.co.jp/azukinokakurenbo/index.html,,取れなかった,画像タグなし
@@ -880,7 +880,7 @@ id,品名,出典ページ,画像URL,取得結果,理由
 879,安心院ワイン 諸矢 甲州,https://shop.sanwa-shurui.co.jp/shopdetail/000000000216/price/page1/order/,https://makeshop-multi-images.akamaized.net/shopmanager/itemimages/000000000216_dbPB5Nc.jpg,取得,og:image
 880,安心院ワイン 極果 プティ・ヴェルド2024,https://shop.sanwa-shurui.co.jp/shopbrand/ajimu_all/,,取れなかった,画像タグなし
 881,安心院ワイン 小公子,https://shop.sanwa-shurui.co.jp/shopbrand/ajimu_all/,,取れなかった,画像タグなし
-882,なんじゃこら大福,https://okashinohidaka.com/item-detail/230925,,取れなかった,画像タグなし
+882,なんじゃこら大福,https://okashinohidaka.raku-uru.jp/item-detail/230925,https://image.raku-uru.jp/01/6617/132/%E5%A4%A7%E7%A6%8F6_1572671462191_1200.jpg,取得,公式サイト
 883,チーズ饅頭,https://okashinohidaka.com/item-detail/230930,https://image.raku-uru.jp/01/6617/27/IMG_5032_1571453242190_1200.jpg,取得,公式商品ページ(調査)
 884,キリチーズ生すふれ,https://okashinohidaka.com/item-detail/231737,https://image.raku-uru.jp/01/6617/52/%E3%82%AD%E3%83%AA%E7%94%9F%E3%81%99%E3%81%B5%E3%82%8C_1571816190410_1200.jpg,取得,公式商品ページ(調査)
 885,レモンバー,https://okashinohidaka.com/item-detail/622872,https://image.raku-uru.jp/01/6617/243/phonto%2815%29_1604107003436_1200.JPG,取得,公式商品ページ(調査)
@@ -932,8 +932,8 @@ id,品名,出典ページ,画像URL,取得結果,理由
 931,南国こんがりパイン,https://okashigoten.com/products/detail/207,https://okashigoten.com/html/upload/save_image/0125161134_65b209a609911.jpg,取得,og:image
 932,ソーキ,https://okashigoten.com/products/detail/157,https://okashigoten.com/html/upload/save_image/0907160558_6a9e6256a2bce.jpg,取得,og:image
 933,らふてぃー,https://okashigoten.com/products/detail/158,https://okashigoten.com/html/upload/save_image/0907160841_6a9e62f9ed186.jpg,取得,og:image
-934,忠孝 The Vanilla14年古酒43度,,,取れなかった,出典URLなし
-935,忠孝 甕熟成18年古酒40度,,,取れなかった,出典URLなし
+934,忠孝 The Vanilla14年古酒43度,https://prtimes.jp/main/html/rd/p/000000082.000079957.html,https://prcdn.freetls.fastly.net/release_image/79957/82/79957-82-c5a6820e42837fbe260e2458d388e322-690x690.png?auto=webp&bg-color=fff&fit=bounds&format=jpeg&height=1350&quality=85%2C75&width=1950,取得,プレスリリース
+935,忠孝 甕熟成18年古酒40度,https://prtimes.jp/main/html/rd/p/000000082.000079957.html,https://prcdn.freetls.fastly.net/release_image/79957/82/79957-82-8e3cdc083cb5716d8920d33dec260cf6-690x690.png?auto=webp&bg-color=fff&fit=bounds&format=jpeg&height=1350&quality=85%2C75&width=1950,取得,プレスリリース
 936,忠孝15年古酒40度,https://chuko-online.com/view/item/000000000017,https://makeshop-multi-images.akamaized.net/chukoawamori/shopimages/17/00/1_000000000017.png?1784177183=,取得,公式商品ページ(調査)
 937,夢航海30度,,,取れなかった,出典URLなし
 938,アップルパイ,https://www.jimmys.co.jp/view/item/000000000044,https://makeshop-multi-images.akamaized.net/jimmys9557/itemimages/000000000044_kdHgEoc.jpg,取得,og:image

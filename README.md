@@ -68,3 +68,5 @@ python3 scripts/fetch_images.py --only-ids 1,2,3
 ```
 
 入力は `src/data/items.json`、出力は `data/images/item_images.csv` と `data/images/summary.md` です。指定なしでは全品をid昇順で出力し、絞り込み時は対象品のみ出力します。実行ごとに出力を上書きします。`--resume` は保存済みページキャッシュを再利用し、画像の到達確認は再実行します。キャッシュは `data/images/cache/` に保存します。共通画像の判定範囲は実行対象の出典ページです。全体最大6並列、同一ホストは直列かつ最低2.5秒間隔でアクセスします。元データは更新しません。
+
+注意: `data/images/item_images.csv` には、`fetch_images.py` の自動取得（`理由` 列が `og:image` / `JSON-LD`）のほか、公式商品ページなどを調べてスクリプトで検証したうえで手動追加した行がある（`理由` 列に「公式商品ページ(調査)」「公式ショップ(楽天)」「百貨店」「プレスリリース」など出典の種類を記載）。`fetch_images.py` は実行ごとにCSVを全件上書きするため、オプションなしや `--resume` での実行でも手動追加の行が消える。再実行前にCSVを退避し、実行後に手動追加の行を戻して、`git diff data/images/item_images.csv` で消えていないか確認すること。
