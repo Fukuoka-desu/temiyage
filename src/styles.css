@@ -799,6 +799,7 @@ dialog::backdrop {
   line-height: 1.5;
 }
 .chip.selected,
+.budget-control .chip[aria-pressed="true"],
 .segment .active {
   background: var(--accent);
   border-color: var(--accent);
@@ -1460,12 +1461,6 @@ input[type="checkbox"] {
   border-radius: 4px;
   font-size: 10px;
 }
-.card-top .region {
-  background: #fffdf7f2;
-  border-radius: 4px;
-  padding: 3px 6px;
-}
-
 .budget-bound {
   position: relative;
   display: flex;
