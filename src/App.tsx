@@ -24,6 +24,7 @@ import {
   type Conditions,
   type Item,
 } from "./lib/score";
+import { searchSuggestions } from "./lib/search";
 import { readConditions, writeConditions } from "./lib/url";
 const items: Item[] = data;
 const prefectureCount = new Set(items.map((i) => i.p)).size;
@@ -86,6 +87,10 @@ function App() {
   const results = useMemo(
     () => filterSort(scoreItems(items, deferred), deferred),
     [deferred],
+  );
+  const suggestions = useMemo(
+    () => (results.length === 0 ? searchSuggestions(items, deferred.q) : []),
+    [results.length, deferred.q],
   );
   const quickRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -591,10 +596,10 @@ function App() {
                 <input
                   id="search"
                   type="search"
-                  placeholder="品名・メーカー・県で検索"
+                  placeholder="品名・店名・県・ジャンルで検索"
                   value={c.q}
                   onChange={(e) => update("q", e.target.value)}
-                  aria-label="品名・メーカー・県・内容量で検索"
+                  aria-label="品名・店名・県・ジャンルで検索"
                 />
               </label>
               <div className="filter-selects">
@@ -792,6 +797,20 @@ function App() {
                 <p>
                   いまの条件で候補は0件です。好み・産地・ジャンル・検索語を減らす、日持ち重視を外す、予算を広げると候補が見つかることがあります。
                 </p>
+                {c.q.trim() && c.q === deferred.q && suggestions.length > 0 && (
+                  <div>
+                    <span>もしかして：</span>
+                    {suggestions.map((word) => (
+                      <button
+                        key={word}
+                        className="secondary"
+                        onClick={() => update("q", word)}
+                      >
+                        {word}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div>
                   {relaxationOptions(items, c).map(
                     ({ label, conditions, count }) => (

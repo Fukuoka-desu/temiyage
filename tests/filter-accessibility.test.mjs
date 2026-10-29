@@ -36,7 +36,7 @@ visit(source);
 
 it("検索欄と各selectは見出しに依存しないaria-labelを持つ", () => {
   for (const [id, tag, name] of [
-    ["search", "input", "品名・メーカー・県・内容量で検索"],
+    ["search", "input", "品名・店名・県・ジャンルで検索"],
     ["fpref", "select", "産地で絞る"],
     ["genre", "select", "ジャンルで絞る"],
     ["sort", "select", "並べ替え"],

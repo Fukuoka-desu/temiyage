@@ -24,7 +24,8 @@ LIKES = {'甘いもの': ['和菓子', '洋菓子', 'チョコ'], '和菓子': [
 
 def norm(text):
     text = unicodedata.normalize('NFKC', text).lower()
-    return ''.join(chr(ord(ch)-96) if 'ァ' <= ch <= 'ヶ' else ch for ch in text)
+    text = ''.join(chr(ord(ch)-96) if 'ァ' <= ch <= 'ヶ' else ch for ch in text)
+    return ''.join(ch for ch in text if not (ch.isspace() or unicodedata.category(ch)[0] in 'PS' or ch == 'ー'))
 
 
 def eligible(c):
@@ -54,8 +55,17 @@ def eligible(c):
             continue
         if c['genre'] and c['genre'] != i['g']:
             continue
-        fields = [norm(i[k]) for k in ('n', 'm', 'p', 'q')]
-        if not all(any(word in field for field in fields) for word in norm(c['q']).split()):
+        fields = [norm(i[k]) for k in ('n', 'm', 'p', 'r', 'g', 'q')] + [norm(t) for t in i['t']]
+        # この件数検証で使う読み・ジャンルの言い換えのみを独立に定義する。
+        def matches(word):
+            if any(word in field for field in fields):
+                return True
+            if word == 'ちょこ':
+                return i['g'] == 'チョコ' or 'しょこら' in norm(i['n'])
+            if word.startswith('まんじゅう'):
+                return ('饅頭' + word[len('まんじゅう'):]) in norm(i['n'])
+            return False
+        if not all(matches(norm(word)) for word in c['q'].split()):
             continue
         selected.append(i)
     return selected
@@ -141,12 +151,13 @@ class CountTests(unittest.TestCase):
                 verified = sum(i['v'] for i in priced)
                 n = min(24, verified)
                 by_id = {i['id']: i for i in [*ITEMS, *expected]}
-                self.assertTrue(all(by_id[i]['v'] for i in a['ids'][:n]))
-                unknown_ids = {i['id'] for i in expected if i['y'] is None}
-                self.assertEqual(set(a['ids'][len(priced):]), unknown_ids)
-                for group in [a['ids'][:len(priced)], a['ids'][len(priced):]]:
-                    flags = [by_id[i]['v'] for i in group]
-                    self.assertEqual(flags, sorted(flags, reverse=True))
+                if not c['q'].strip() or c['sort'] != 'recommend':
+                    self.assertTrue(all(by_id[i]['v'] for i in a['ids'][:n]))
+                    unknown_ids = {i['id'] for i in expected if i['y'] is None}
+                    self.assertEqual(set(a['ids'][len(priced):]), unknown_ids)
+                    for group in [a['ids'][:len(priced)], a['ids'][len(priced):]]:
+                        flags = [by_id[i]['v'] for i in group]
+                        self.assertEqual(flags, sorted(flags, reverse=True))
                 self.assertEqual(a['restored']['budget'], c['budget'])
                 self.assertEqual(a['restored']['pu'], c['pu'])
                 if c['budget'] == 'b1' and not c['pu']:
@@ -171,7 +182,7 @@ class CountTests(unittest.TestCase):
                 if test.get('url'):
                     self.assertEqual(a['restored']['use'], 'visit')
                     self.assertEqual(a['restored']['mine'], '大阪')
-        report += ['', f'{len(tests)}条件。価格不明が末尾、各価格グループ内で確認済み優先、注意付き件数・注意総数、共有URL往復・旧URLも検証。',
+        report += ['', f'{len(tests)}条件。検索なし・明示順は価格不明が末尾かつ確認済み優先、検索ありのおすすめ順は検索点優先、注意付き件数・注意総数、共有URL往復・旧URLも検証。',
                    '実データに存在しない境界価格は専用の仮想商品（3000・5000・10000円）でも4帯を確認。',
                    f'件数不一致: {len(failures)}。']
         (ROOT / 'tests/count_report.md').write_text('\n'.join(report)+'\n')

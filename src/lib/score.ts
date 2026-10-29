@@ -1,3 +1,5 @@
+import { searchScore, searchWords } from "./search";
+export { normalize } from "./search";
 import { itemMarks, traitReason, type Marks, type Trait } from "./marks";
 
 export interface Item {
@@ -289,29 +291,24 @@ export function scoreItems(
       (a.item.y ?? 0) - (b.item.y ?? 0),
   );
 }
-export const normalize = (s: string) =>
-  s
-    .normalize("NFKC")
-    .toLocaleLowerCase("ja")
-    .replace(/[ァ-ヶ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60));
 export function filterSort(results: Result[], c: Conditions) {
+  const words = searchWords(c.q);
+  const scores = new Map<Result, number>();
   return results
-    .filter(
-      ({ item: i }) =>
-        (!c.fpref || i.p === c.fpref) &&
-        (!c.genre || i.g === c.genre) &&
-        normalize(c.q)
-          .trim()
-          .split(/\s+/)
-          .filter(Boolean)
-          .every((word) =>
-            [i.n, i.m, i.p, i.q].some((field) =>
-              normalize(field).includes(word),
-            ),
-          ),
-    )
+    .filter((result) => {
+      const i = result.item;
+      if ((c.fpref && i.p !== c.fpref) || (c.genre && i.g !== c.genre))
+        return false;
+      const score = searchScore(i, words);
+      if (score === null) return false;
+      scores.set(result, score);
+      return true;
+    })
     .sort(
       (a, b) =>
+        (c.sort === "recommend" && words.length
+          ? (scores.get(b) ?? 0) - (scores.get(a) ?? 0)
+          : 0) ||
         Number(a.item.y === null) - Number(b.item.y === null) ||
         Number(b.item.v) - Number(a.item.v) ||
         (c.sort === "low"

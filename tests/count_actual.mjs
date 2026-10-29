@@ -4,7 +4,7 @@ import { readFileSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 const dir = new URL("../.counts-build/", import.meta.url);
 mkdirSync(dir, { recursive: true });
 try {
-  for (const name of ["marks", "score", "url"]) {
+  for (const name of ["marks", "search", "score", "url"]) {
     let source = readFileSync(
       new URL(`../src/lib/${name}.ts`, import.meta.url),
       "utf8",
@@ -20,7 +20,7 @@ try {
           module: ts.ModuleKind.ES2022,
         },
       })
-      .outputText.replace(/(['"])\.\/(score|marks)\1/g, "'./$2.js'");
+      .outputText.replace(/(['"])\.\/(score|search|marks)\1/g, "'./$2.js'");
     writeFileSync(new URL(`${name}.js`, dir), js);
   }
   const { defaults, scoreItems, filterSort, relaxationOptions } =
