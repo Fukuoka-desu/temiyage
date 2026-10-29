@@ -4,3 +4,4 @@ dist/
 .npm-cache/
 .test-build/
 data/images/cache/
+__pycache__/

@@ -64,11 +64,27 @@ def convert(row, item_id):
     }
 
 
+def attach_images(items, path):
+    if not path.exists():
+        return
+    with path.open(encoding='utf-8-sig', newline='') as source:
+        images = {row['id']: row for row in csv.DictReader(source)
+                  if row.get('取得結果') == '取得'}
+    for item in items:
+        row = images.get(str(item['id']))
+        if row and row.get('品名') == item['n']:
+            image = display_url(row.get('画像URL', ''))
+            page = display_url(row.get('出典ページ', ''))
+            if image and page:
+                item.update(img=image, imgsrc=page)
+
+
 def main():
     from source_csv import source_csv
     source_path = source_csv(sys.argv[1] if len(sys.argv) > 1 else None)
     with source_path.open(encoding='utf-8-sig', newline='') as source:
         items = [convert(row, index) for index, row in enumerate(csv.DictReader(source), 1)]
+    attach_images(items, ROOT / "data/images/item_images.csv")
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(
         json.dumps(items, ensure_ascii=False, separators=(',', ':')) + '\n',

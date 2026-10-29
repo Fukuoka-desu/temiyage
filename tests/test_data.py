@@ -35,3 +35,41 @@ class DataTests(unittest.TestCase):
         for row in multiple[:3]:
             self.assertEqual(module.convert(row, 1)['u'], row['出典URL'].split('|')[0].strip())
         self.assertEqual(module.display_url('不明 | https://example.com'), '')
+
+    def test_image_enrichment_preserves_original_fields(self):
+        import csv
+        import copy
+        from tempfile import TemporaryDirectory
+        with TemporaryDirectory(dir=Path(__file__).resolve().parents[1]) as directory:
+            path = Path(directory) / 'images.csv'
+            items = [module.convert({'品名': '品'}, 1), module.convert({'品名': '別'}, 2)]
+            before = copy.deepcopy(items)
+            module.attach_images(items, path)
+            self.assertEqual(items, before)
+            with path.open('w', encoding='utf-8-sig', newline='') as stream:
+                writer = csv.DictWriter(stream, fieldnames=['id', '品名', '出典ページ', '画像URL', '取得結果', '理由'])
+                writer.writeheader()
+                writer.writerows([
+                    dict(id=1, 品名='品', 出典ページ='https://example.com/item', 画像URL='https://example.com/photo.jpg', 取得結果='取得'),
+                    dict(id=2, 品名='別', 出典ページ='https://example.com/other', 画像URL='https://example.com/no.jpg', 取得結果='未取得')])
+            module.attach_images(items, path)
+            self.assertEqual(items[0]['img'], 'https://example.com/photo.jpg')
+            self.assertEqual(items[0]['imgsrc'], 'https://example.com/item')
+            self.assertEqual({k: v for k, v in items[0].items() if k not in ('img', 'imgsrc')}, before[0])
+            self.assertEqual(items[1], before[1])
+
+    def test_real_image_mapping(self):
+        import csv
+        path = Path(__file__).resolve().parents[1] / 'data/images/item_images.csv'
+        if not path.exists():
+            return
+        with path.open(encoding='utf-8-sig', newline='') as source:
+            rows = list(csv.DictReader(source))
+        items = [module.convert({'品名': row['品名']}, int(row['id'])) for row in rows]
+        module.attach_images(items, path)
+        for item, row in zip(items, rows):
+            if row['取得結果'] == '取得':
+                self.assertEqual(item['img'], row['画像URL'])
+                self.assertEqual(item['imgsrc'], row['出典ページ'])
+            else:
+                self.assertNotIn('img', item)

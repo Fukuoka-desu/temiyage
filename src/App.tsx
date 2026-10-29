@@ -1,7 +1,9 @@
+import { BudgetRange } from "./BudgetRange";
+import { ItemImage } from "./ItemImage";
 import { ItemPrice, dateLabel } from "./ItemPrice";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import data from "./data/items.json";
-import { Artwork, Emblem, Flower, Icon } from "./Artwork";
+import { Emblem, Flower, Icon } from "./Artwork";
 import {
   itemMarks,
   markLabels,
@@ -10,7 +12,9 @@ import {
   type Mark,
 } from "./lib/marks";
 import {
-  budgets,
+  budgetRange,
+  budgetSteps,
+  budgetText,
   defaults,
   filterSort,
   likeTags,
@@ -55,8 +59,7 @@ const budgetLabels = {
 };
 function budgetSummary(c: Conditions) {
   return (
-    budgetLabels[c.budget] +
-    (c.budget !== "any" && c.pu ? "（価格不明も含む）" : "")
+    budgetText(c) + (c.budget !== "any" && c.pu ? "（価格不明も含む）" : "")
   );
 }
 function App() {
@@ -88,7 +91,11 @@ function App() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const resultRef = useRef<HTMLElement>(null);
   const fallbackRef = useRef<HTMLInputElement>(null);
-  const results = useMemo(() => filterSort(scoreItems(items, c), c), [c]);
+  const deferred = useDeferredValue(c);
+  const results = useMemo(
+    () => filterSort(scoreItems(items, deferred), deferred),
+    [deferred],
+  );
   const quickRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     quickRef.current
@@ -107,6 +114,10 @@ function App() {
   const update = <K extends keyof Conditions>(key: K, value: Conditions[K]) =>
     setC((old) => {
       const next = { ...old, [key]: value };
+      if (key === "budget") {
+        delete next.bmin;
+        delete next.bmax;
+      }
       if (key === "nosweet" && value) {
         next.likes = old.likes.filter((like) => !sweetLikes.includes(like));
         if (next.likes.length !== old.likes.length)
@@ -222,7 +233,7 @@ function App() {
                   <span className="range-decoration" aria-hidden="true">
                     <i
                       style={{
-                        width: `${(Object.keys(budgets).indexOf(c.budget) + 1) * 20}%`,
+                        width: `${(budgetSteps.indexOf(budgetRange(c)[1]) / (budgetSteps.length - 1)) * 100}%`,
                       }}
                     />
                   </span>
@@ -243,6 +254,7 @@ function App() {
                 {key === "season" ? "時期" : key === "budget" ? "予算" : "用途"}
                 <span />
               </h2>
+              {key === "budget" && <p>{budgetSummary(c)}</p>}
               <div className="quick-chips">
                 {Object.entries(
                   key === "season"
@@ -253,8 +265,11 @@ function App() {
                 ).map(([value, label]) => (
                   <button
                     key={value}
-                    className={`chip ${c[key] === value ? "selected" : ""}`}
-                    aria-pressed={c[key] === value}
+                    className={`chip ${(key !== "budget" || c.bmin === undefined) && c[key] === value ? "selected" : ""}`}
+                    aria-pressed={
+                      (key !== "budget" || c.bmin === undefined) &&
+                      c[key] === value
+                    }
                     onClick={() => update(key, value as never)}
                   >
                     {label}
@@ -524,50 +539,7 @@ function App() {
                   <h2>
                     <span>03</span> ご予算
                   </h2>
-                  <label htmlFor="budget-range">
-                    ご予算（税込）：{budgetSummary(c)}
-                  </label>
-                  <input
-                    id="budget-range"
-                    type="range"
-                    min="0"
-                    max="4"
-                    step="1"
-                    value={Object.keys(budgets).indexOf(c.budget)}
-                    aria-valuetext={budgetSummary(c)}
-                    onChange={(e) =>
-                      update(
-                        "budget",
-                        Object.keys(budgets)[
-                          Number(e.target.value)
-                        ] as Conditions["budget"],
-                      )
-                    }
-                  />
-                  <label htmlFor="budget">予算帯を選ぶ</label>
-                  <select
-                    id="budget"
-                    value={c.budget}
-                    onChange={(e) =>
-                      update("budget", e.target.value as Conditions["budget"])
-                    }
-                  >
-                    {Object.entries(budgetLabels).map(([k, v]) => (
-                      <option key={k} value={k}>
-                        {v}
-                      </option>
-                    ))}
-                  </select>
-                  {c.budget !== "any" && (
-                    <label className="small-note">
-                      <input
-                        type="checkbox"
-                        checked={c.pu}
-                        onChange={(e) => update("pu", e.target.checked)}
-                      />
-                      価格不明の品も含める
-                    </label>
-                  )}
+                  <BudgetRange conditions={c} onChange={setC} />
                   <p className="small-note">
                     予算帯を選ぶと予算に近い品も含めます。「指定しない」は価格不明の品も含みます。価格不明の品は末尾に表示します。
                   </p>
@@ -644,6 +616,7 @@ function App() {
                 <h2>こんな手土産はいかが？</h2>
               </div>
             </div>
+            <BudgetRange conditions={c} onChange={setC} />
             <div className="filter-box">
               <label className="search-label" htmlFor="search">
                 <span>キーワード</span>
@@ -729,7 +702,7 @@ function App() {
                     .map(({ item: i, why, cautions }, index) => (
                       <article className="item-card" key={i.id}>
                         <div className="card-visual">
-                          <Artwork genre={i.g} />
+                          <ItemImage item={i} />
                           <div className="card-top">
                             <span className="region">
                               {i.p}

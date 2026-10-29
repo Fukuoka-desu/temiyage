@@ -30,6 +30,8 @@ def norm(text):
 def eligible(c):
     low, high = {'b1': (0, 3450), 'b2': (2400, 5750),
                  'b3': (4000, 11500), 'b4': (8000, float('inf')), 'any': (0, float('inf'))}[c['budget']]
+    if c.get("bmin") is not None and c["budget"] != "any":
+        low, high = c["bmin"] * .8, c.get("bmax", float("inf")) * 1.15
     selected = []
     for i in ITEMS:
         tags = set(i['t']) - {'個包装'}
@@ -97,6 +99,12 @@ def cases():
         ('全共有項目', {'likes': [], 'traits': ['tea', 'single'], 'rel': 'business', 'season': 'chugen', 'use': 'office', 'mine': '', 'keep': True}),
     ]:
         out.append((label, patch))
+    for low, high in [(1500, 5000), (0, None), (5000, None), (2000, 2000)]:
+        for pu in [False, True]:
+            patch = dict(bmin=low, pu=pu)
+            if high is not None:
+                patch['bmax'] = high
+            out.append((f'範囲{low}〜{high or "∞"} pu={pu}', patch))
     return [dict(label=label, patch=patch) for label, patch in out]
 
 

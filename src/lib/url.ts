@@ -1,6 +1,8 @@
 import { isTrait } from "./marks";
 import {
   defaults,
+  budgetSteps,
+  rangeConditions,
   likeTags,
   sweetLikes,
   seasons,
@@ -38,11 +40,44 @@ export function readConditions(prefs: string[], genres: string[]): Conditions {
   c.traits = [...new Set((p.get("traits") ?? "").split(",").filter(isTrait))];
   if (c.nosweet) c.likes = c.likes.filter((like) => !sweetLikes.includes(like));
   c.q = (p.get("q") ?? "").trim();
+  if (c.budget !== "any" && (p.has("bmin") || p.has("bmax"))) {
+    const rawLo = p.get("bmin") ?? "0";
+    const rawHi = p.get("bmax") ?? "max";
+    const lo = Number(rawLo),
+      hi = rawHi === "max" ? Infinity : Number(rawHi);
+    const valid =
+      /^\d+$/.test(rawLo) &&
+      (rawHi === "max" || /^\d+$/.test(rawHi)) &&
+      Number.isFinite(lo) &&
+      (Number.isFinite(hi) || rawHi === "max") &&
+      lo <= hi &&
+      lo <= 30000 &&
+      hi >= 0;
+    if (!valid) {
+      c.budget = "b1";
+      return c;
+    }
+    const nearest = (n: number) =>
+      n === Infinity
+        ? Infinity
+        : budgetSteps
+            .slice(0, -1)
+            .reduce((a, b) => (Math.abs(b - n) < Math.abs(a - n) ? b : a));
+    return rangeConditions(c, nearest(lo), nearest(hi));
+  }
   return c;
 }
 export function writeConditions(c: Conditions) {
+  if (c.budget !== "any" && c.bmin !== undefined)
+    c = rangeConditions(c, c.bmin, c.bmax ?? Infinity);
   const p = new URLSearchParams();
   for (const key of Object.keys(c) as (keyof Conditions)[]) {
+    if (
+      key === "bmin" ||
+      key === "bmax" ||
+      (key === "budget" && c.bmin !== undefined)
+    )
+      continue;
     const value = c[key];
     if (JSON.stringify(value) === JSON.stringify(defaults[key])) continue;
     p.set(
@@ -53,8 +88,12 @@ export function writeConditions(c: Conditions) {
           ? value
             ? "1"
             : "0"
-          : value,
+          : String(value),
     );
+  }
+  if (c.budget !== "any" && c.bmin !== undefined) {
+    p.set("bmin", String(c.bmin));
+    if (c.bmax !== undefined) p.set("bmax", String(c.bmax));
   }
   const query = p.toString();
   history.replaceState(

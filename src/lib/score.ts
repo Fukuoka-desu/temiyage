@@ -1,6 +1,8 @@
 import { itemMarks, traitReason, type Marks, type Trait } from "./marks";
 
 export interface Item {
+  img?: string;
+  imgsrc?: string;
   id: number;
   r: string;
   p: string;
@@ -43,6 +45,50 @@ export const budgets = {
   b4: [10000, Infinity],
   any: [0, Infinity],
 } as const;
+export const budgetSteps = [
+  0,
+  1000,
+  1500,
+  2000,
+  2500,
+  3000,
+  4000,
+  5000,
+  7000,
+  10000,
+  15000,
+  20000,
+  30000,
+  Infinity,
+];
+export function budgetRange(c: Conditions): readonly [number, number] {
+  return c.bmin === undefined
+    ? budgets[c.budget]
+    : [c.bmin, c.bmax ?? Infinity];
+}
+export function rangeConditions(
+  c: Conditions,
+  lo: number,
+  hi: number,
+): Conditions {
+  const { bmin: _lo, bmax: _hi, ...rest } = c;
+  const band = (["b1", "b2", "b3", "b4"] as const).find(
+    (key) => budgets[key][0] === lo && budgets[key][1] === hi,
+  );
+  return band
+    ? { ...rest, budget: band }
+    : {
+        ...rest,
+        budget: "b1",
+        bmin: lo,
+        ...(hi === Infinity ? {} : { bmax: hi }),
+      };
+}
+export function budgetText(c: Conditions) {
+  if (c.budget === "any") return "指定しない";
+  const [lo, hi] = budgetRange(c);
+  return `${lo.toLocaleString("ja-JP")}円〜${hi === Infinity ? "上限なし" : hi.toLocaleString("ja-JP") + "円"}`;
+}
 export const seasons = {
   none: "季節を問わない",
   chugen: "お中元（夏）",
@@ -69,6 +115,8 @@ export interface Conditions {
   keep: boolean;
   pu: boolean;
   budget: keyof typeof budgets;
+  bmin?: number;
+  bmax?: number;
   season: keyof typeof seasons;
   use: keyof typeof uses;
   sort: "recommend" | "low" | "high" | "days";
@@ -106,7 +154,7 @@ export function scoreItems(
   marks: Marks = itemMarks,
 ): Result[] {
   const results: Result[] = [];
-  const [lo, hi] = budgets[c.budget];
+  const [lo, hi] = budgetRange(c);
   const mine = c.mine || "東京";
   for (const it of items) {
     const has = (tag: string) =>
@@ -277,7 +325,7 @@ export function filterSort(results: Result[], c: Conditions) {
 }
 
 export function relaxationOptions(items: Item[], c: Conditions) {
-  const keys = ["b1", "b2", "b3", "b4"] as const;
+  const [lo, hi] = budgetRange(c);
   const options: [string, Partial<Conditions>][] = [
     ["産地の指定を解除", { fpref: "" }],
     ["検索語をクリア", { q: "" }],
@@ -286,12 +334,15 @@ export function relaxationOptions(items: Item[], c: Conditions) {
     ["好みを解除", { likes: [] }],
     [
       "予算を一段上げる",
-      {
-        budget:
-          c.budget === "any"
-            ? "any"
-            : keys[Math.min(keys.indexOf(c.budget) + 1, keys.length - 1)],
-      },
+      c.budget === "any"
+        ? {}
+        : rangeConditions(
+            c,
+            lo,
+            budgetSteps[
+              Math.min(budgetSteps.indexOf(hi) + 1, budgetSteps.length - 1)
+            ],
+          ),
     ],
     ["価格不明の品も含める", { pu: true }],
     ["日持ち重視を外す", { keep: false }],

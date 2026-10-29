@@ -9,10 +9,20 @@ try {
     ["-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"],
     { stdio: "inherit", env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1" } },
   );
-  for (const file of ["marks", "score", "url", "ItemPrice"]) {
+  for (const file of [
+    "marks",
+    "score",
+    "url",
+    "ItemPrice",
+    "Artwork",
+    "ItemImage",
+    "BudgetRange",
+  ]) {
     let source = readFileSync(
       new URL(
-        file === "ItemPrice" ? "../src/ItemPrice.tsx" : `../src/lib/${file}.ts`,
+        ["ItemPrice", "Artwork", "ItemImage", "BudgetRange"].includes(file)
+          ? `../src/${file}.tsx`
+          : `../src/lib/${file}.ts`,
         import.meta.url,
       ),
       "utf8",
@@ -27,6 +37,38 @@ try {
         `const data = ${marks};`,
       );
     }
+    if (file === "ItemImage") {
+      const eventSource = source.replace(
+        'import { useState } from "react";',
+        "const useState = () => globalThis.__imageState();",
+      );
+      const eventJS = ts
+        .transpileModule(eventSource, {
+          compilerOptions: {
+            target: ts.ScriptTarget.ES2022,
+            module: ts.ModuleKind.ES2022,
+            jsx: ts.JsxEmit.ReactJSX,
+          },
+        })
+        .outputText.replace('"./Artwork"', '"./Artwork.js"');
+      writeFileSync(new URL("ImageEvent.js", out), eventJS);
+    }
+    if (file === "BudgetRange") {
+      const eventSource = source.replace(
+        'import { useId } from "react";',
+        'const useId = () => "budget-test";',
+      );
+      const eventJS = ts
+        .transpileModule(eventSource, {
+          compilerOptions: {
+            target: ts.ScriptTarget.ES2022,
+            module: ts.ModuleKind.ES2022,
+            jsx: ts.JsxEmit.ReactJSX,
+          },
+        })
+        .outputText.replace('"./lib/score"', '"./score.js"');
+      writeFileSync(new URL("BudgetEvent.js", out), eventJS);
+    }
     const result = ts.transpileModule(source, {
       compilerOptions: {
         target: ts.ScriptTarget.ES2022,
@@ -36,12 +78,17 @@ try {
     });
     writeFileSync(
       new URL(`${file}.js`, out),
-      result.outputText.replace(/(['"])\.\/(score|marks)\1/g, "'./$2.js'"),
+      result.outputText.replace(
+        /(['"])\.\/(?:lib\/)?(score|marks|Artwork)\1/g,
+        "'./$2.js'",
+      ),
     );
   }
   await import("../tests/score.test.mjs");
   await import("../tests/url.test.mjs");
   await import("../tests/price.test.mjs");
+  await import("../tests/range.test.mjs");
+  await import("../tests/image.test.mjs");
 } finally {
   rmSync(out, { recursive: true, force: true });
 }

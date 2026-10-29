@@ -14,7 +14,7 @@ import sys
 import threading
 import time
 from urllib.error import HTTPError, URLError
-from urllib.parse import urljoin, urlsplit, unquote
+from urllib.parse import urljoin, urlsplit, urlunsplit, unquote, quote
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -72,6 +72,13 @@ def image_values(value):
         yield from image_values(value.get('url'))
 
 
+def normalize_image_url(url):
+    parts = urlsplit(url)
+    safe = "/%:@!$&'()*+,;=~-._"
+    return urlunsplit((parts.scheme, parts.netloc, quote(parts.path, safe=safe),
+                       quote(parts.query, safe=safe + "?"), quote(parts.fragment, safe=safe + "?")))
+
+
 def extract_image(html, page_url):
     parser = Metadata()
     parser.feed(html)
@@ -86,12 +93,16 @@ def extract_image(html, page_url):
     for value, origin in candidates:
         url = urljoin(page_url, value.strip())
         if value.strip() and urlsplit(url).scheme.lower() in ('http', 'https') and urlsplit(url).hostname:
-            return url, origin
+            return normalize_image_url(url), origin
     return '', '画像タグなし'
 
 
 def rejected_name(url):
     path = unquote(urlsplit(url).path).lower()
+    filename = path.rsplit('/', 1)[-1]
+    for word in ('ogp', 'og_img', 'og-image', 'ogimage', 'og_image', 'thumbnail'):
+        if word in filename:
+            return f'ロゴ・共通画像名({word})'
     for word in ('logo', 'ogp_default', 'og_default', 'default', 'noimage', 'no_image', 'no-image', 'common', 'share', 'sns', 'favicon', 'icon', 'banner'):
         if word in path:
             return f'ロゴ・共通画像名({word})'
@@ -100,12 +111,17 @@ def rejected_name(url):
     return ''
 
 
-def common_images(pages):
-    """pages maps distinct source URLs to (image URL, origin/reason)."""
+def image_key(url):
+    return urlunsplit(urlsplit(url)._replace(query=''))
+
+
+def common_images(items, pages):
+    """Count distinct items sharing an image URL, ignoring its query string."""
     owners = defaultdict(set)
-    for page, (url, _) in pages.items():
+    for item in items:
+        url, _ = pages.get(source_url(item), ('', ''))
         if url:
-            owners[url].add(page)
+            owners[image_key(url)].add(item['id'])
     return {url: len(values) for url, values in owners.items() if len(values) >= 2}
 
 
@@ -136,6 +152,7 @@ class Network:
         self.slots = threading.Semaphore(6)
 
     def request(self, url, method='GET', headers=None, read_limit=MAX_BYTES):
+        url = normalize_image_url(url)
         retries = 0
         redirects = 0
         while True:
@@ -161,7 +178,7 @@ class Network:
                 redirects += 1
                 if redirects > 10:
                     raise ValueError('redirect limit')
-                url = urljoin(url, response_headers['Location'])
+                url = normalize_image_url(urljoin(url, response_headers['Location']))
                 continue
             if status in (429, 503) and retries == 0:
                 retries += 1
@@ -188,7 +205,7 @@ class Fetcher:
             if self.resume and cache.exists():
                 saved = json.loads(cache.read_text(encoding='utf-8'))
             else:
-                status, headers, body, final = self.network.request(url)
+                status, headers, body, final = self.network.request(normalize_image_url(url))
                 if status != 200:
                     return '', f'ページ取得失敗({status})'
                 saved = {'url': final, 'html': decode_html(body, headers.get('Content-Type', ''))}
@@ -199,24 +216,35 @@ class Fetcher:
             return '', f'ページ取得失敗({error_label(exc)})'
 
     def image(self, url):
+        http_only = urlsplit(url).scheme.lower() == 'http'
+        if http_only:
+            url = urlunsplit(urlsplit(url)._replace(scheme='https'))
         last = 'unknown'
         for method in ('HEAD', 'GET'):
             try:
-                status, headers, _, _ = self.network.request(url, method, {'Range': 'bytes=0-0'} if method == 'GET' else {}, read_limit=1)
-                if status in (200, 206) and headers.get('Content-Type', '').lower().startswith('image/'):
+                status, headers, _, final = self.network.request(url, method, {'Range': 'bytes=0-0'} if method == 'GET' else {}, read_limit=1)
+                if (status in (200, 206) and headers.get('Content-Type', '').lower().startswith('image/')
+                        and (not http_only or urlsplit(final).scheme.lower() == 'https')):
                     return ''
                 last = str(status) if status not in (200, 206) else 'Content-Type非画像'
             except (OSError, ValueError, URLError) as exc:
                 last = error_label(exc)
-        return f'画像を開けない({last})'
+        return 'httpのみ（https不可）' if http_only else f'画像を開けない({last})'
 
 
-def host_jobs(urls, operation):
+def host_jobs(urls, operation, failure):
     queues = defaultdict(list)
     for url in urls:
         queues[urlsplit(url).hostname].append(url)
     def run(queue):
-        return [(url, operation(url)) for url in queue]
+        results = []
+        for url in queue:
+            try:
+                result = operation(url)
+            except Exception as exc:
+                result = failure(type(exc).__name__)
+            results.append((url, result))
+        return results
     results = {}
     with ThreadPoolExecutor(max_workers=6) as executor:
         futures = [executor.submit(run, queue) for queue in queues.values()]
@@ -227,17 +255,19 @@ def host_jobs(urls, operation):
 
 
 def make_rows(items, pages, checks):
-    common = common_images(pages)
+    common = common_images(items, pages)
     rows = []
     for item in sorted(items, key=lambda x: int(x['id'])):
         page = source_url(item)
         image, origin = pages.get(page, ('', '出典URLなし'))
         reason = origin if not image else rejected_name(image)
-        if image and not reason and image in common:
-            reason = f'複数ページで共通({common[image]}件)'
+        if image and image_key(image) in common:
+            reason = f'複数の品で共通({common[image_key(image)]}件)'
         if image and not reason:
             reason = checks.get(image, '')
         ok = bool(image) and not reason
+        if ok and urlsplit(image).scheme.lower() == 'http':
+            image = urlunsplit(urlsplit(image)._replace(scheme='https'))
         rows.append([item['id'], item['n'], page, image if ok else '', '取得' if ok else '取れなかった', origin if ok else reason])
     return rows
 
@@ -282,10 +312,13 @@ def main():
     if args.limit is not None:
         items = items[:args.limit]
     fetcher = Fetcher(ROOT / 'data/images/cache', args.resume)
-    pages = host_jobs(sorted({source_url(item) for item in items if source_url(item)}), fetcher.page)
-    common = common_images(pages)
-    urls = sorted({image for image, _ in pages.values() if image and not rejected_name(image) and image not in common})
-    checks = host_jobs(urls, fetcher.image)
+    pages = host_jobs(
+        sorted({source_url(item) for item in items if source_url(item)}),
+        fetcher.page, lambda name: ('', f'ページ取得失敗({name})'),
+    )
+    common = common_images(items, pages)
+    urls = sorted({image for image, _ in pages.values() if image and not rejected_name(image) and image_key(image) not in common})
+    checks = host_jobs(urls, fetcher.image, lambda name: f'画像を開けない({name})')
     write_outputs(make_rows(items, pages, checks), ROOT / 'data/images')
 
 
