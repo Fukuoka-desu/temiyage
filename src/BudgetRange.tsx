@@ -9,10 +9,19 @@ import {
   type Conditions,
 } from "./lib/score";
 
-export function budgetPosition(clientX: number, left: number, width: number) {
+export function budgetPosition(
+  clientX: number,
+  left: number,
+  width: number,
+  radius: number,
+) {
   return Math.max(
     0,
-    Math.min(budgetSteps.length - 1, ((clientX - left - 22) / Math.max(1, width - 44)) * (budgetSteps.length - 1)),
+    Math.min(
+      budgetSteps.length - 1,
+      ((clientX - left - radius) / Math.max(1, width - 2 * radius)) *
+        (budgetSteps.length - 1),
+    ),
   );
 }
 
@@ -29,6 +38,49 @@ export function budgetThumb(
   return distance < 0 ? 0 : 1;
 }
 
+// Coordinates stay unclamped here so grabs in the transparent end padding
+// retain their full offset. Only the final value is clamped by budgetPosition.
+export function budgetGrab(
+  lower: number,
+  upper: number,
+  x: number,
+  left: number,
+  width: number,
+  radius: number,
+  reach: number,
+  direction = 0,
+): { thumb: 0 | 1 | null; offset: number; jump: boolean } {
+  const span = Math.max(1, width - 2 * radius);
+  const center = (step: number) =>
+    left + radius + (step / (budgetSteps.length - 1)) * span;
+  const nearLower = Math.abs(x - center(lower)) <= reach;
+  const nearUpper = Math.abs(x - center(upper)) <= reach;
+  const thumb =
+    nearLower && nearUpper
+      ? direction < 0
+        ? 0
+        : direction > 0
+          ? 1
+          : null
+      : nearLower
+        ? 0
+        : nearUpper
+          ? 1
+          : budgetThumb(
+              lower,
+              upper,
+              budgetPosition(x, left, width, radius),
+              direction,
+            );
+  const jump = !nearLower && !nearUpper;
+  return {
+    thumb,
+    offset:
+      !jump && thumb !== null ? x - center(thumb === 0 ? lower : upper) : 0,
+    jump,
+  };
+}
+
 export function BudgetRange({
   conditions: c,
   onChange,
@@ -40,7 +92,13 @@ export function BudgetRange({
   const drag = useRef<{
     pointerId: number;
     startX: number;
-    position: number;
+    left: number;
+    width: number;
+    radius: number;
+    reach: number;
+    lower: number;
+    upper: number;
+    offset: number;
     thumb: 0 | 1 | null;
   } | null>(null);
   const [lo, hi] = budgetRange(c);
@@ -61,7 +119,9 @@ export function BudgetRange({
     onChange(
       rangeConditions(
         c,
-        budgetSteps[index === 0 ? Math.min(value, upper, budgetSteps.length - 2) : lower],
+        budgetSteps[
+          index === 0 ? Math.min(value, upper, budgetSteps.length - 2) : lower
+        ],
         budgetSteps[index === 1 ? Math.max(value, lower) : upper],
       ),
     );
@@ -78,37 +138,72 @@ export function BudgetRange({
           if (!e.isPrimary || e.button !== 0 || drag.current) return;
           e.preventDefault();
           const rect = e.currentTarget.getBoundingClientRect();
-          const position = budgetPosition(e.clientX, rect.left, rect.width);
-          const thumb = budgetThumb(lower, upper, position);
+          const css = getComputedStyle(e.currentTarget);
+          const radius = parseFloat(css.getPropertyValue("--budget-radius"));
+          const reach = parseFloat(css.getPropertyValue("--budget-reach"));
+          const { thumb, offset, jump } = budgetGrab(
+            lower,
+            upper,
+            e.clientX,
+            rect.left,
+            rect.width,
+            radius,
+            reach,
+          );
           drag.current = {
             pointerId: e.pointerId,
             startX: e.clientX,
-            position,
+            left: rect.left,
+            width: rect.width,
+            radius,
+            reach,
+            lower,
+            upper,
+            offset,
             thumb,
           };
           e.currentTarget.setPointerCapture(e.pointerId);
           if (thumb !== null) {
             e.currentTarget.querySelectorAll("input")[thumb].focus();
-            update(thumb, Math.round(position));
+            if (jump)
+              update(
+                thumb,
+                Math.round(
+                  budgetPosition(e.clientX, rect.left, rect.width, radius),
+                ),
+              );
           }
         }}
         onPointerMove={(e) => {
           const active = drag.current;
           if (!active || active.pointerId !== e.pointerId) return;
           if (active.thumb === null) {
-            active.thumb = budgetThumb(
-              lower,
-              upper,
-              active.position,
+            const grab = budgetGrab(
+              active.lower,
+              active.upper,
+              active.startX,
+              active.left,
+              active.width,
+              active.radius,
+              active.reach,
               e.clientX - active.startX,
             );
+            active.thumb = grab.thumb;
+            active.offset = grab.offset;
             if (active.thumb === null) return;
             e.currentTarget.querySelectorAll("input")[active.thumb].focus();
           }
           const rect = e.currentTarget.getBoundingClientRect();
           update(
             active.thumb,
-            Math.round(budgetPosition(e.clientX, rect.left, rect.width)),
+            Math.round(
+              budgetPosition(
+                e.clientX - active.offset,
+                rect.left,
+                rect.width,
+                active.radius,
+              ),
+            ),
           );
         }}
         onPointerUp={(e) => {

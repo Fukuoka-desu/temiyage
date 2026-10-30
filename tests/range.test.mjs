@@ -7,6 +7,7 @@ import { BudgetRange as RangeEvent } from "../.test-build/BudgetEvent.js";
 import {
   BudgetRange,
   budgetPosition,
+  budgetGrab,
   budgetThumb,
 } from "../.test-build/BudgetRange.js";
 import {
@@ -154,11 +155,15 @@ it("両つまみは交差せず、操作でany解除・不明価格・指定し�
   const button = () => nodes(tree()).find((node) => node.type === "button");
   const checkbox = () =>
     nodes(tree()).find((node) => node.props?.type === "checkbox");
-  inputs()[0].props.onChange({ target: { value: String(budgetSteps.length - 2) } });
+  inputs()[0].props.onChange({
+    target: { value: String(budgetSteps.length - 2) },
+  });
   assert.deepEqual(budgetRange(c), [5000, 5000]);
   inputs()[1].props.onChange({ target: { value: "0" } });
   assert.deepEqual(budgetRange(c), [5000, 5000]);
-  inputs()[1].props.onChange({ target: { value: String(budgetSteps.length - 1) } });
+  inputs()[1].props.onChange({
+    target: { value: String(budgetSteps.length - 1) },
+  });
   assert.deepEqual(budgetRange(c), [5000, Infinity]);
   checkbox().props.onChange({
     target: { checked: true },
@@ -167,7 +172,9 @@ it("両つまみは交差せず、操作でany解除・不明価格・指定し�
   button().props.onClick();
   assert.equal(c.budget, "any");
   assert.equal(c.bmin, undefined);
-  inputs()[0].props.onChange({ target: { value: String(budgetSteps.indexOf(3000)) } });
+  inputs()[0].props.onChange({
+    target: { value: String(budgetSteps.indexOf(3000)) },
+  });
   assert.notEqual(c.budget, "any");
   assert.deepEqual(budgetRange(c), [3000, Infinity]);
   button().props.onClick();
@@ -186,11 +193,11 @@ it("重なりと等距離は最初の移動方向で選び、それ以外は近�
   assert.equal(budgetThumb(3, 9, 8), 1);
 });
 it("位置はつまみの半径を考慮し0〜13へ収める", () => {
-  assert.equal(budgetPosition(122, 100, 304), 0);
-  assert.equal(budgetPosition(252, 100, 304), (budgetSteps.length - 1) / 2);
-  assert.equal(budgetPosition(382, 100, 304), budgetSteps.length - 1);
-  assert.equal(budgetPosition(0, 100, 304), 0);
-  assert.equal(budgetPosition(500, 100, 304), budgetSteps.length - 1);
+  assert.equal(budgetPosition(112, 100, 304, 12), 0);
+  assert.equal(budgetPosition(252, 100, 304, 12), (budgetSteps.length - 1) / 2);
+  assert.equal(budgetPosition(392, 100, 304, 12), budgetSteps.length - 1);
+  assert.equal(budgetPosition(0, 100, 304, 12), 0);
+  assert.equal(budgetPosition(500, 100, 304, 12), budgetSteps.length - 1);
 });
 it("クイック条件に予算は重複せず上下限の文字はアクセシブル名だけにある", () => {
   const source = readFileSync(
@@ -212,4 +219,66 @@ it("クイック条件に予算は重複せず上下限の文字はアクセシ�
   assert.ok(!html.replace(/<[^>]*>/g, "").includes("下限"));
   assert.ok(!html.replace(/<[^>]*>/g, "").includes("上限"));
   assert.ok(html.includes("¥1,500–¥5,000"));
+});
+
+it("PC・スマホの掴み範囲は境界まで跳ばず、外側のレールは跳ぶ", () => {
+  for (const [radius, reach] of [
+    [12, 20],
+    [14, 24],
+  ]) {
+    const width = 400,
+      left = 100,
+      lower = 3,
+      upper = budgetSteps.length - 2;
+    const center =
+      left + radius + (lower / (budgetSteps.length - 1)) * (width - 2 * radius);
+    for (const offset of [-reach, -10, 0, 10, reach]) {
+      const grab = budgetGrab(
+        lower,
+        upper,
+        center + offset,
+        left,
+        width,
+        radius,
+        reach,
+      );
+      assert.equal(grab.thumb, 0);
+      assert.equal(grab.jump, false);
+      assert.equal(grab.offset, offset);
+      assert.ok(
+        Math.abs(
+          budgetPosition(center + offset - grab.offset, left, width, radius) -
+            lower,
+        ) < 1e-9,
+      );
+    }
+    assert.equal(
+      budgetGrab(lower, upper, center + reach + 1, left, width, radius, reach)
+        .jump,
+      true,
+    );
+    assert.equal(budgetPosition(left + radius, left, width, radius), 0);
+    assert.equal(
+      budgetPosition(left + width - radius, left, width, radius),
+      budgetSteps.length - 1,
+    );
+  }
+});
+it("重なった掴み範囲は距離に関係なく方向で決め、各中心からのずれを保つ", () => {
+  for (const upper of [5, 6]) {
+    const x = 12 + 5.2 / (budgetSteps.length - 1) * 260;
+    const args = [5, upper, x, 0, 284, 12, 24];
+    assert.equal(budgetGrab(...args).thumb, null);
+    for (const [direction, thumb] of [
+      [-1, 0],
+      [1, 1],
+    ]) {
+      const grab = budgetGrab(...args, direction);
+      assert.equal(grab.thumb, thumb);
+      assert.equal(grab.jump, false);
+      const step = thumb === 0 ? 5 : upper;
+      const center = 12 + (step / (budgetSteps.length - 1)) * 260;
+      assert.equal(grab.offset, x - center);
+    }
+  }
 });
