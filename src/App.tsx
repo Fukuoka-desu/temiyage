@@ -1,3 +1,4 @@
+import { createImageGate, priorityImageCount, snapshotImageFailures } from "./lib/imageLoading";
 import { shelfLabel, shopShelfText, cardCautionText } from "./lib/display";
 import { ItemDetail, packagingLabel } from "./ItemDetail";
 import { BudgetRange } from "./BudgetRange";
@@ -93,11 +94,19 @@ function App() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const resultRef = useRef<HTMLElement>(null);
   const fallbackRef = useRef<HTMLInputElement>(null);
+  const [priorityCount] = useState(() => priorityImageCount(window.innerWidth));
   const deferred = useDeferredValue(c);
+  const [failureSnapshot, setFailureSnapshot] = useState(() => ({ conditions: deferred, failedImages }));
+  const sortingSnapshot = snapshotImageFailures(failureSnapshot, deferred, failedImages);
+  if (sortingSnapshot !== failureSnapshot) setFailureSnapshot(sortingSnapshot);
   const results = useMemo(
-    () => filterSort(scoreItems(items, deferred), deferred, failedImages),
-    [deferred, failedImages],
+    () => filterSort(scoreItems(items, deferred), deferred, sortingSnapshot.failedImages),
+    [deferred, sortingSnapshot.failedImages],
   );
+  const [imageGate] = useState(() => createImageGate(
+    results.slice(0, priorityCount).filter(({ item }) => !!item.img).map(({ item }) => item.id),
+  ));
+  useEffect(() => imageGate.start(), [imageGate]);
   const suggestions = useMemo(
     () => (results.length === 0 ? searchSuggestions(items, deferred.q) : []),
     [results.length, deferred.q],
@@ -682,7 +691,7 @@ function App() {
                     .map(({ item: i, why, cautions }, index) => (
                       <article className="item-card" key={i.id}>
                         <div className="card-visual">
-                          <button className="card-open-photo" onClick={() => openItem(i.id)} aria-label={`${i.n}の詳細を見る`}><ItemImage item={i} onFailure={imageFailure} credit={false} /></button>
+                          <button className="card-open-photo" onClick={() => openItem(i.id)} aria-label={`${i.n}の詳細を見る`}><ItemImage item={i} gate={imageGate} priority={index < priorityCount} onFailure={imageFailure} credit={false} /></button>
                           <div className="card-top">
                             <span className="region">
                               {i.p}

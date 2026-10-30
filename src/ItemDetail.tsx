@@ -19,7 +19,7 @@ export function ItemDetail({ result, season, onClose, onFailure }: { result: Res
   return <dialog ref={ref} className="item-detail" role="dialog" aria-modal="true" aria-labelledby="item-title"
     onCancel={(e) => { e.preventDefault(); onClose(); }} onClick={(e) => { if (e.target === e.currentTarget) { const r = e.currentTarget.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) onClose(); } }}>
     <button type="button" className="detail-close" aria-label="閉じる" onClick={onClose}>×</button>
-    <div className="detail-photo"><ItemImage item={i} onFailure={onFailure} /></div>
+    <div className="detail-photo"><ItemImage item={i} priority onFailure={onFailure} /></div>
     <h2 id="item-title">{i.n}</h2><p>{i.m}{i.p && `（${prefectureLabel(i.p)}）`}</p>
     <ItemPrice item={i} />
     <dl className="detail-specs">
