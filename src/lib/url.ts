@@ -71,6 +71,8 @@ export function writeConditions(c: Conditions) {
   if (c.budget !== "any" && c.bmin !== undefined)
     c = rangeConditions(c, c.bmin, c.bmax ?? Infinity);
   const p = new URLSearchParams();
+  const item = readItemId();
+  if (item !== null) p.set("item", String(item));
   for (const key of Object.keys(c) as (keyof Conditions)[]) {
     if (
       key === "bmin" ||
@@ -101,4 +103,15 @@ export function writeConditions(c: Conditions) {
     "",
     `${location.pathname}${query ? "?" + query : ""}${location.hash}`,
   );
+}
+
+export function readItemId(): number | null {
+  const value = new URLSearchParams(location.search).get("item");
+  return value && /^\d+$/.test(value) && Number.isSafeInteger(Number(value)) ? Number(value) : null;
+}
+export function writeItemId(id: number | null, push = false) {
+  const url = new URL(location.href);
+  if (id === null) url.searchParams.delete("item");
+  else url.searchParams.set("item", String(id));
+  history[push ? "pushState" : "replaceState"](null, "", url.pathname + url.search + url.hash);
 }

@@ -53,7 +53,7 @@ def convert(row, item_id):
         'dr': get('日持ち(原文)'),
         'st': storage_label,
         'sr': store,
-        'ko': get('個包装') == '有' or '個包装' in tags,
+        'ko': {'有': True, '無': False}.get(get('個包装')),
         'g': get('ジャンル'),
         't': tags,
         'u': display_url(get('出典URL')),

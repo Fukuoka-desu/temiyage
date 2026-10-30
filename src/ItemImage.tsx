@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Artwork } from "./Artwork";
 import type { Item } from "./lib/score";
 
-export function ItemImage({ item }: { item: Item }) {
+export function ItemImage({ item, onFailure, credit = true }: { item: Item; onFailure?: (id: number) => void; credit?: boolean }) {
   const [failed, setFailed] = useState<string>();
-  if (!item.img || failed === item.img) return <Artwork genre={item.g} />;
+  if (!item.img || failed === item.img) return <div className="photo-placeholder"><Artwork genre={item.g} /><span>{item.g} · 写真なし</span></div>;
   return (
     <>
       <img
@@ -16,16 +16,16 @@ export function ItemImage({ item }: { item: Item }) {
         width={640}
         height={400}
         referrerPolicy="no-referrer"
-        onError={() => setFailed(item.img)}
+        onError={() => { setFailed(item.img); onFailure?.(item.id); }}
       />
-      <a
+      {credit && <a
         className="image-credit"
         href={item.imgsrc}
         target="_blank"
         rel="noopener noreferrer"
       >
         画像：公式ページより
-      </a>
+      </a>}
     </>
   );
 }

@@ -24,7 +24,7 @@ export interface Item {
   dr: string;
   st: string;
   sr: string;
-  ko: boolean;
+  ko: boolean | null;
   g: string;
   t: string[];
   u: string;
@@ -56,20 +56,8 @@ export const budgets = {
   any: [0, Infinity],
 } as const;
 export const budgetSteps = [
-  0,
-  1000,
-  1500,
-  2000,
-  2500,
-  3000,
-  4000,
-  5000,
-  7000,
-  10000,
-  15000,
-  20000,
-  30000,
-  Infinity,
+  ...Array.from({ length: 61 }, (_, i) => i * 100),
+  7000, 8000, 9000, 10000, 15000, 20000, 30000, Infinity,
 ];
 export function budgetRange(c: Conditions): readonly [number, number] {
   return c.bmin === undefined
@@ -138,7 +126,7 @@ export const defaults: Conditions = {
   pref: "東京",
   mine: "",
   home: "avoid",
-  likes: ["甘いもの"],
+  likes: [],
   traits: [],
   rel: "",
   nosweet: false,
@@ -232,7 +220,7 @@ export function scoreItems(
         );
       }
     }
-    if (c.likes.length && hit === 0) continue;
+    if (!c.q.trim() && c.likes.length && hit === 0) continue;
     score += hit * 4;
     if (c.use === "visit") {
       if (has("個包装")) add(2, "個包装で渡しやすい");
@@ -340,11 +328,12 @@ export function scoreItems(
       b.traitHits - a.traitHits ||
       Number(a.item.y === null) - Number(b.item.y === null) ||
       Number(b.item.v) - Number(a.item.v) ||
+      Number(!a.item.img) - Number(!b.item.img) ||
       b.score - a.score ||
       (a.item.y ?? 0) - (b.item.y ?? 0),
   );
 }
-export function filterSort(results: Result[], c: Conditions) {
+export function filterSort(results: Result[], c: Conditions, failedImages: ReadonlySet<number> = new Set()) {
   const words = searchWords(c.q);
   const scores = new Map<Result, number>();
   return results
@@ -366,6 +355,7 @@ export function filterSort(results: Result[], c: Conditions) {
           : 0) ||
         Number(a.item.y === null) - Number(b.item.y === null) ||
         Number(b.item.v) - Number(a.item.v) ||
+        Number(!a.item.img || failedImages.has(a.item.id)) - Number(!b.item.img || failedImages.has(b.item.id)) ||
         (c.sort === "low"
           ? (a.item.y ?? 0) - (b.item.y ?? 0)
           : c.sort === "high"

@@ -12,6 +12,7 @@ import {
 import {
   defaults,
   budgets,
+  budgetSteps,
   budgetRange,
   budgetText,
   rangeConditions,
@@ -83,7 +84,7 @@ it("不正範囲は既定、段階間は最寄りへ丸める", () => {
     "?budget=b3&bmin=bad",
   ])
     assert.deepEqual(read(query), defaults);
-  assert.deepEqual(budgetRange(read("?bmin=1400&bmax=5100")), [1500, 5000]);
+  assert.deepEqual(budgetRange(read("?bmin=1400&bmax=5100")), [1400, 5100]);
   assert.equal(read("?budget=any&bmin=bad").budget, "any");
 });
 it("範囲ラベル・2つのつまみ・不明価格切替が表示される", () => {
@@ -132,7 +133,7 @@ it("範囲の0件提案は上限を次の段階へ広げる", () => {
   const suggestions = relaxationOptions(items, c);
   const option = suggestions.find((o) => o.label === "予算を一段上げる");
   assert.ok(option);
-  assert.deepEqual(budgetRange(option.conditions), [2000, 2500]);
+  assert.deepEqual(budgetRange(option.conditions), [2000, 2100]);
 });
 
 it("両つまみは交差せず、操作でany解除・不明価格・指定しないが同期する", () => {
@@ -153,11 +154,11 @@ it("両つまみは交差せず、操作でany解除・不明価格・指定し�
   const button = () => nodes(tree()).find((node) => node.type === "button");
   const checkbox = () =>
     nodes(tree()).find((node) => node.props?.type === "checkbox");
-  inputs()[0].props.onChange({ target: { value: "12" } });
+  inputs()[0].props.onChange({ target: { value: String(budgetSteps.length - 2) } });
   assert.deepEqual(budgetRange(c), [5000, 5000]);
   inputs()[1].props.onChange({ target: { value: "0" } });
   assert.deepEqual(budgetRange(c), [5000, 5000]);
-  inputs()[1].props.onChange({ target: { value: "13" } });
+  inputs()[1].props.onChange({ target: { value: String(budgetSteps.length - 1) } });
   assert.deepEqual(budgetRange(c), [5000, Infinity]);
   checkbox().props.onChange({
     target: { checked: true },
@@ -166,7 +167,7 @@ it("両つまみは交差せず、操作でany解除・不明価格・指定し�
   button().props.onClick();
   assert.equal(c.budget, "any");
   assert.equal(c.bmin, undefined);
-  inputs()[0].props.onChange({ target: { value: "5" } });
+  inputs()[0].props.onChange({ target: { value: String(budgetSteps.indexOf(3000)) } });
   assert.notEqual(c.budget, "any");
   assert.deepEqual(budgetRange(c), [3000, Infinity]);
   button().props.onClick();
@@ -186,10 +187,10 @@ it("重なりと等距離は最初の移動方向で選び、それ以外は近�
 });
 it("位置はつまみの半径を考慮し0〜13へ収める", () => {
   assert.equal(budgetPosition(122, 100, 304), 0);
-  assert.equal(budgetPosition(252, 100, 304), 6.5);
-  assert.equal(budgetPosition(382, 100, 304), 13);
+  assert.equal(budgetPosition(252, 100, 304), (budgetSteps.length - 1) / 2);
+  assert.equal(budgetPosition(382, 100, 304), budgetSteps.length - 1);
   assert.equal(budgetPosition(0, 100, 304), 0);
-  assert.equal(budgetPosition(500, 100, 304), 13);
+  assert.equal(budgetPosition(500, 100, 304), budgetSteps.length - 1);
 });
 it("クイック条件に予算は重複せず上下限の文字はアクセシブル名だけにある", () => {
   const source = readFileSync(

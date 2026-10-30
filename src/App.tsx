@@ -1,3 +1,5 @@
+import { shelfLabel, shopShelfText } from "./lib/display";
+import { ItemDetail, packagingLabel } from "./ItemDetail";
 import { BudgetRange } from "./BudgetRange";
 import { ItemImage } from "./ItemImage";
 import { ItemPrice, dateLabel } from "./ItemPrice";
@@ -25,7 +27,7 @@ import {
   type Item,
 } from "./lib/score";
 import { searchSuggestions } from "./lib/search";
-import { readConditions, writeConditions } from "./lib/url";
+import { readConditions, writeConditions, readItemId, writeItemId } from "./lib/url";
 const items: Item[] = data;
 const prefectureCount = new Set(items.map((i) => i.p)).size;
 const verifiedCount = items.filter((i) => i.v).length;
@@ -40,7 +42,7 @@ const confirmationPeriod = confirmationDates.length
   : "確認日未記載";
 function hasShelfDetails(item: Item) {
   const raw = item.dr.normalize("NFKC").replace(/\s/g, "");
-  if (!raw) return false;
+  if (!raw || raw === "不明") return false;
   const daysOnly = raw.match(/^(?:約)?(\d+(?:\.\d+)?)(?:日(?:間)?)?$/);
   return !daysOnly || item.d === null || Number(daysOnly[1]) !== item.d;
 }
@@ -56,6 +58,15 @@ function budgetSummary(c: Conditions) {
 }
 function App() {
   const [c, setC] = useState<Conditions>(() => readConditions(prefs, genres));
+  const [itemId, setItemId] = useState(readItemId);
+  const pushedItem = useRef(false);
+  const [failedImages, setFailedImages] = useState<ReadonlySet<number>>(new Set());
+  const imageFailure = (id: number) => setFailedImages(old => old.has(id) ? old : new Set([...old, id]));
+  function openItem(id: number) { writeItemId(id, true); pushedItem.current = true; setItemId(id); }
+  function closeItem() {
+    if (pushedItem.current) { pushedItem.current = false; history.back(); }
+    else { writeItemId(null); setItemId(null); }
+  }
   const [panel, setPanel] = useState("");
   const conditionsRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
@@ -85,8 +96,8 @@ function App() {
   const fallbackRef = useRef<HTMLInputElement>(null);
   const deferred = useDeferredValue(c);
   const results = useMemo(
-    () => filterSort(scoreItems(items, deferred), deferred),
-    [deferred],
+    () => filterSort(scoreItems(items, deferred), deferred, failedImages),
+    [deferred, failedImages],
   );
   const suggestions = useMemo(
     () => (results.length === 0 ? searchSuggestions(items, deferred.q) : []),
@@ -133,7 +144,7 @@ function App() {
     setLimit(24);
   }, [c]);
   useEffect(() => {
-    const handler = () => setC(readConditions(prefs, genres));
+    const handler = () => { setC(readConditions(prefs, genres)); setItemId(readItemId()); };
     window.addEventListener("popstate", handler);
     return () => window.removeEventListener("popstate", handler);
   }, []);
@@ -204,7 +215,6 @@ function App() {
               [...c.likes, ...c.traits.map((t) => traitLabels[t])].join("・") ||
                 "指定なし",
             ],
-            ["budget", "yen", "予算", budgetSummary(c)],
           ].map(([key, icon, title, value], index) => (
             <div className="pill-step" key={title}>
               <button
@@ -226,7 +236,7 @@ function App() {
                   <span aria-hidden="true">⌄</span>
                 </span>
               </button>
-              {index < 4 && (
+              {index < 3 && (
                 <span className="step-arrow" aria-hidden="true">
                   ›
                 </span>
@@ -348,7 +358,7 @@ function App() {
               <div className="condition-body">
                 <section className="form-section section-land">
                   <h2>
-                    <span>01</span> ふたりの土地
+                    ふたりの土地
                   </h2>
                   <label htmlFor="pref">相手の出身地</label>
                   <select
@@ -393,7 +403,7 @@ function App() {
                 </section>
                 <section className="form-section section-taste">
                   <h2>
-                    <span>02</span> 好みとこだわり
+                    好みとこだわり
                   </h2>
                   <p className="field-help">
                     好みを選択 <span>複数選べます</span>
@@ -505,18 +515,9 @@ function App() {
                     );
                   })}
                 </section>
-                <section className="form-section section-budget">
-                  <h2>
-                    <span>03</span> ご予算
-                  </h2>
-                  <BudgetRange conditions={c} onChange={setC} />
-                  <p className="small-note">
-                    予算帯を選ぶと予算に近い品も含めます。「指定しない」は価格不明の品も含みます。価格不明の品は末尾に表示します。
-                  </p>
-                </section>
                 <section className="form-section section-occasion">
                   <h2>
-                    <span>04</span> 贈る時期と場面
+                    贈る時期と場面
                   </h2>
                   <p className="small-note">
                     時期・用途・関係はそれぞれ1つ選べます。合う品を加点し、保存や贈る場面の注意がある品も候補に残します。
@@ -649,17 +650,7 @@ function App() {
             <div className="result-toolbar">
               <div className="result-count">
                 <p role="status">
-                  <strong>{results.length}</strong>件
-                  {results.length > 0 && (
-                    <>
-                      中{" "}
-                      <span>
-                        {c.sort === "recommend"
-                          ? "上位から表示"
-                          : `${Math.min(limit, results.length)}件を表示`}
-                      </span>
-                    </>
-                  )}
+                  全{items.length}品中 <strong>{results.length}</strong>品が条件に合います
                 </p>
                 <small className="price-note">
                   価格は
@@ -677,7 +668,7 @@ function App() {
                     .map(({ item: i, why, cautions }, index) => (
                       <article className="item-card" key={i.id}>
                         <div className="card-visual">
-                          <ItemImage item={i} />
+                          <button className="card-open-photo" onClick={() => openItem(i.id)} aria-label={`${i.n}の詳細を見る`}><ItemImage item={i} onFailure={imageFailure} credit={false} /></button>
                           <div className="card-top">
                             <span className="region">
                               {i.p}
@@ -697,11 +688,11 @@ function App() {
                               {i.g}
                               {c.sort === "recommend" && index < 3 && (
                                 <span className="rank">
-                                  おすすめ {String(index + 1).padStart(2, "0")}
+                                  おすすめ
                                 </span>
                               )}
                             </span>
-                            <h3>{i.n}</h3>
+                            <h3><button className="card-open-title" onClick={() => openItem(i.id)}>{i.n}</button></h3>
                             <p className="maker">{i.m}</p>
                           </div>
                           <p className="quantity">
@@ -711,17 +702,17 @@ function App() {
                             <ItemPrice item={i} />
                             <div className="specs">
                               <span>
-                                {i.d !== null ? `約${i.d}日` : "日持ち要確認"}
+                                {shelfLabel(i)}
                               </span>
                               <span>
-                                {i.ko ? "個包装あり" : "個包装なし・不明"}
+                                {packagingLabel(i.ko)}
                               </span>
                               {i.st && <span className="cold">{i.st}</span>}
                             </div>
                           </div>
                           {hasShelfDetails(i) && (
                             <p className="shelf-note" title={i.dr}>
-                              出典の表記：{i.dr}
+                              お店の表記：{shopShelfText(i.dr)}
                             </p>
                           )}
                           {(!i.v || i.y === null) && (
@@ -729,13 +720,13 @@ function App() {
                               価格・販売状況は購入前に販売元へご確認ください
                             </p>
                           )}
-                          <div className="reasons">
+                          {why.some(reason => reason.trim()) && <div className="reasons">
                             <h4>
                               <Flower />
                               おすすめ理由
                             </h4>
-                            <p>{why.join("・")}</p>
-                          </div>
+                            <p>{why.filter(reason => reason.trim()).join("・")}</p>
+                          </div>}
                           <div className="mark-tags" aria-label="品の印">
                             {(Object.keys(itemMarks[i.id] ?? {}) as Mark[])
                               .filter((mark) =>
@@ -756,23 +747,8 @@ function App() {
                             </p>
                           ))}
                           <div className="card-link">
-                            {/^https?:\/\/[^\s|]+$/i.test(i.u) ? (
-                              <a
-                                href={i.u}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                {i.src === "公式"
-                                  ? "公式ページを見る"
-                                  : i.src === "百貨店"
-                                    ? "百貨店のページを見る"
-                                    : "販売ページを見る"}{" "}
-                                <span aria-hidden="true">↗</span>
-                              </a>
-                            ) : (
-                              <small>公式ページの情報がありません</small>
-                            )}
-                            <small>出典：{i.src}</small>
+                            <button onClick={() => openItem(i.id)}>詳しく見る →</button>
+                            <small>情報：{i.src === "公式" ? "お店の公式サイト" : i.src === "百貨店" ? "百貨店のサイト" : i.src}（{dateLabel(i.c)}確認）</small>
                           </div>
                         </div>
                       </article>
@@ -877,6 +853,12 @@ function App() {
           共有
         </button>
       </nav>
+      {itemId !== null && (() => {
+        const item = items.find(i => i.id === itemId);
+        if (!item) return null;
+        const result = results.find(r => r.item.id === itemId) ?? scoreItems([item], { ...defaults, pref: "", budget: "any", season: c.season, use: c.use })[0];
+        return result ? <ItemDetail key={itemId} result={result} season={seasons[c.season]} onClose={closeItem} onFailure={imageFailure} /> : null;
+      })()}
       {toast && (
         <div className="toast" role="status">
           ✓ {toast}

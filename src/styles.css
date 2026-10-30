@@ -108,7 +108,7 @@ main,
 }
 .brand small {
   display: block;
-  font: 11px/1.8 sans-serif;
+  font: 12px/1.8 sans-serif;
   letter-spacing: 0.07em;
   margin-top: 3px;
 }
@@ -284,7 +284,7 @@ main,
 }
 .selected-conditions > p {
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 12px;
 }
 input:not([type="checkbox"]):not([type="range"]),
@@ -369,7 +369,7 @@ input[type="range"] {
   bottom: 7px;
   right: 12px;
   letter-spacing: 0.15em;
-  font: 10px var(--serif);
+  font: 12px var(--serif);
   opacity: 0.8;
 }
 .card-top {
@@ -394,7 +394,7 @@ input[type="range"] {
   background: #fff7df;
   color: #70501c;
   border: 1px solid #baa06a;
-  font-size: 10px;
+  font-size: 12px;
   padding: 5px 8px;
   border-radius: 4px;
 }
@@ -406,12 +406,12 @@ input[type="range"] {
   min-width: 0;
 }
 .verified-note {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   margin-bottom: 6px;
 }
 .item-genre {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   display: flex;
   gap: 8px;
@@ -428,7 +428,7 @@ input[type="range"] {
 }
 .maker,
 .quantity {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
   color: var(--muted);
 }
@@ -445,7 +445,7 @@ input[type="range"] {
 }
 .price small {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   margin-top: 5px;
 }
@@ -456,7 +456,7 @@ input[type="range"] {
   margin-top: 12px;
 }
 .specs > span {
-  font-size: 10px;
+  font-size: 12px;
   border: 1px solid #e2d7c1;
   border-radius: 14px;
   background: #f5efdf;
@@ -472,7 +472,7 @@ input[type="range"] {
 }
 .shelf-note,
 .verification-note {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   line-height: 1.7;
   margin-top: 8px;
@@ -507,7 +507,7 @@ input[type="range"] {
   margin: 8px 0;
 }
 .mark-tags span {
-  font-size: 10px;
+  font-size: 12px;
   background: #f2ebdd;
   border: 1px solid var(--line);
   border-radius: 5px;
@@ -516,7 +516,7 @@ input[type="range"] {
 .caution-note {
   background: #fff3d4;
   border-left: 2px solid #b28c3d;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
   padding: 8px;
   margin: 6px 0;
@@ -532,7 +532,7 @@ input[type="range"] {
 }
 .card-link small {
   display: block;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.7;
   color: var(--muted);
   margin-top: 7px;
@@ -544,14 +544,14 @@ input[type="range"] {
 }
 .load-more small {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 10px;
 }
 .load-more button {
   min-width: 200px;
 }
 .results-note {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   line-height: 1.8;
   margin: 20px 0;
@@ -569,7 +569,7 @@ input[type="range"] {
 }
 .data-note p,
 footer p {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 2;
   color: var(--muted);
   margin: 6px 0;
@@ -620,7 +620,7 @@ footer {
   margin-top: 20px;
 }
 footer small {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
 }
 .mobile-quick,
@@ -728,7 +728,7 @@ dialog::backdrop {
 }
 .toggle-row small {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.8;
   color: var(--muted);
 }
@@ -872,7 +872,7 @@ input[type="checkbox"] {
     gap: 5px;
   }
   .pill-value {
-    font-size: 11px;
+    font-size: 12px;
   }
   .workspace {
     display: flex;
@@ -1068,7 +1068,7 @@ input[type="checkbox"] {
     gap: 5px;
   }
   .specs > span {
-    font-size: 11px;
+    font-size: 12px;
     padding: 5px 9px;
     border-radius: 7px;
   }
@@ -1085,7 +1085,7 @@ input[type="checkbox"] {
     border-radius: 11px;
   }
   .card-link small {
-    font-size: 10px;
+    font-size: 12px;
   }
   .mobile-bottom {
     position: fixed;
@@ -1143,7 +1143,7 @@ input[type="checkbox"] {
     font-size: 16px;
   }
   .data-note p {
-    font-size: 10px;
+    font-size: 12px;
   }
   footer {
     padding-bottom: calc(115px + env(safe-area-inset-bottom, 0px));
@@ -1247,7 +1247,7 @@ input[type="checkbox"] {
   gap: 2px 12px;
 }
 .result-count p {
-  font-size: 11px;
+  font-size: 12px;
 }
 .result-count strong {
   font: 18px var(--serif);
@@ -1255,7 +1255,7 @@ input[type="checkbox"] {
 }
 .price-note {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 .selected-conditions details:not([open]) .fold-icon {
@@ -1395,7 +1395,7 @@ input[type="checkbox"] {
   align-items: center;
   gap: 10px;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 12px;
 }
 .budget-any {
   padding: 0;
@@ -1431,7 +1431,7 @@ input[type="checkbox"] {
     column-gap: 8px;
     row-gap: 0;
     margin: 4px 0;
-    font-size: 11px;
+    font-size: 12px;
   }
   .budget-any {
     min-height: 32px;
@@ -1441,7 +1441,7 @@ input[type="checkbox"] {
     grid-row: 1;
     justify-content: flex-end;
     gap: 8px;
-    font-size: 10px;
+    font-size: 12px;
   }
   .budget-sliders {
     grid-column: 1 / -1;
@@ -1466,5 +1466,92 @@ input[type="checkbox"] {
   color: #75422e;
   padding: 3px 6px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 12px;
+}
+/* Compact controls and stable image geometry. */
+.card-visual, .detail-photo { position: relative; aspect-ratio: 8 / 5; background: #eae1d1; overflow: hidden; }
+.card-open-photo { display: block; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 0; background: #eae1d1; }
+.card-top { pointer-events: none; }
+.item-photo { height: 100%; aspect-ratio: 8 / 5; background: #eae1d1; object-fit: cover; }
+.photo-placeholder { height: 100%; width: 100%; position: relative; background: #eae1d1; }
+.photo-placeholder .artwork { height: 100%; }
+.photo-placeholder > span { position: absolute; bottom: 12px; left: 0; right: 0; text-align: center; font-size: 12px; color: #665842; }
+.card-grid { align-items: stretch; }
+.item-card { height: 100%; }
+.card-open-title { font: inherit; text-align: left; padding: 0; border: 0; background: transparent; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-title h3 { min-height: 0; }
+.card-link button { width: 100%; min-height: 36px; color: var(--accent); }
+.card-content { overflow: hidden; }
+.budget-actions { font-size: 13px; }
+.budget-any, .budget-unknown { min-height: 32px; }
+.image-credit { font-size: 12px; }
+.verified-note, .item-genre, .maker, .quantity, .price small, .specs > span, .shelf-note, .verification-note, .mark-tags span, .card-link small, .price-note, .result-count p, .data-note p, footer p, footer small, .toggle-row small, .results-note, .load-more small { font-size: 12px; }
+.item-detail { width: 700px; max-height: 88dvh; overflow-y: auto; padding: 24px; }
+.detail-close { display: block; margin: 0 0 8px auto; width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0; font-size: 24px; }
+.item-detail h2 { margin: 18px 0 8px; font-size: 24px; overflow-wrap: anywhere; }
+.item-detail p { margin: 12px 0; line-height: 1.8; overflow-wrap: anywhere; }
+.detail-specs > div { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.detail-specs dd { margin: 0; overflow-wrap: anywhere; }
+.detail-source { font-size: 12px; }
+.detail-official { display: block; text-align: center; text-decoration: none; margin-top: 16px; }
+body:has(dialog[open]) { overflow: hidden; }
+@media (max-width: 640px) {
+  body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  main, .header { padding-left: 14px; padding-right: 14px; }
+  .header { flex-wrap: nowrap; justify-content: space-between; gap: 8px; padding-top: 8px; padding-bottom: 8px; }
+  .brand { gap: 5px; flex-shrink: 0; }
+  .brand > span:last-child { font-size: 20px; letter-spacing: 0; }
+  .sp-emblem svg { width: 24px; height: 28px; }
+  .header h1 { flex-basis: auto; border: 0; padding: 0; font-size: 12px; text-align: right; max-width: 145px; }
+  .header h1:before { display: none; }
+  .mobile-quick section { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .mobile-quick section + section { margin-top: 4px; }
+  .mobile-quick h2 { font-size: 13px; margin: 0; flex-shrink: 0; }
+  .mobile-quick h2 span, .mobile-quick h2:after { display: none; }
+  .quick-chips { gap: 5px; padding-bottom: 2px; min-width: 0; }
+  .quick-chips .chip { min-height: 34px; height: 34px; padding: 5px 10px; font-size: 13px; gap: 5px; }
+  .quick-chips svg { width: 15px; height: 15px; }
+  .budget-control { font-size: 13px; margin: 0; column-gap: 4px; }
+  .budget-actions { font-size: 13px; gap: 8px; }
+  .budget-control + .filter-box { padding-top: 2px; }
+  .filter-box { gap: 6px; }
+  .filter-selects { width: 100%; gap: 4px; margin: 0; padding: 0; }
+  .filter-selects > div { min-width: 0; flex: 1; }
+  .filter-box select { width: 100%; padding-left: 8px; padding-right: 22px; }
+  .filter-selects > div::after { right: 8px; }
+  .result-toolbar { padding: 6px 0; margin-bottom: 8px; }
+  .result-count { gap: 2px; }
+  .result-count p { width: 100%; font-size: 13px; }
+  .mobile-bottom { bottom: 0; left: 0; right: 0; height: calc(52px + env(safe-area-inset-bottom, 0px)); padding: 0 12px env(safe-area-inset-bottom, 0px); border-radius: 0; }
+  .mobile-bottom button { min-height: 50px; font-size: 16px; padding: 6px; gap: 8px; }
+  .mobile-bottom svg { width: 20px; height: 20px; }
+  .conditions { inset: auto 0 calc(60px + env(safe-area-inset-bottom, 0px)); max-height: calc(100dvh - 84px - env(safe-area-inset-bottom, 0px)); padding: 16px 16px 24px; }
+  .item-detail { max-height: calc(100dvh - 100px - env(safe-area-inset-bottom, 0px)); padding: 16px; }
+  footer { padding-bottom: 24px; }
+  .region { font-size: 14px; padding: 5px 8px; }
+  .card-title h3 { font-size: 23px; }
+}
+
+.card-visual { flex-shrink: 0; }
+
+/* Finishing touches: compact text, with the photo size preserved. */
+.budget-heading output { font-size: 13px; }
+.detail-marks { margin: 24px 0; }
+.detail-marks h3 { margin-bottom: 10px; }
+.card-content > .mark-tags:empty { display: none; }
+@media (max-width: 640px) {
+  .header h1 { display: none; }
+  .card-content { padding: 12px 14px; }
+  .card-title h3 { line-height: 1.35; margin: 4px 0; }
+  .verified-note { margin-bottom: 4px; }
+  .maker, .quantity { line-height: 1.5; }
+  .quantity { margin: 2px 0 7px; }
+  .price-specs { gap: 6px; }
+  .specs > span { padding: 4px 7px; }
+  .shelf-note, .verification-note { margin-top: 6px; line-height: 1.5; }
+  .reasons { margin-top: 8px; padding-top: 7px; }
+  .reasons h4 { margin-bottom: 4px; }
+  .reasons p { line-height: 1.6; }
+  .caution-note { padding: 6px; line-height: 1.5; }
+  .card-link { padding-top: 10px; }
 }

@@ -12,7 +12,7 @@ import {
   scoreItems,
 } from "../.test-build/score.js";
 // 既存の用途別スコアは、贈り手を大阪に明示した条件で検証する。
-const defaults = { ...appDefaults, mine: "大阪" };
+const defaults = { ...appDefaults, mine: "大阪", likes: ["甘いもの"] };
 const base = {
   id: 1,
   r: "近畿",
@@ -46,7 +46,7 @@ describe("スコアと除外条件", () => {
     const conditions = { ...appDefaults, pref: "京都" };
     const tokyo = { ...base, p: "東京" };
     const result = scoreItems([tokyo], conditions, {})[0];
-    expect(result.score).toBe(16.5);
+    expect(result.score).toBe(12.5);
     expect(result.why[0]).toBe("こちらの土地の名物で話題になる");
     expect(scoreItems([tokyo], appDefaults, {})).toEqual([]);
     expect(

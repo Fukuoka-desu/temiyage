@@ -12,7 +12,7 @@ import {
 export function budgetPosition(clientX: number, left: number, width: number) {
   return Math.max(
     0,
-    Math.min(13, ((clientX - left - 22) / Math.max(1, width - 44)) * 13),
+    Math.min(budgetSteps.length - 1, ((clientX - left - 22) / Math.max(1, width - 44)) * (budgetSteps.length - 1)),
   );
 }
 
@@ -61,7 +61,7 @@ export function BudgetRange({
     onChange(
       rangeConditions(
         c,
-        budgetSteps[index === 0 ? Math.min(value, upper, 12) : lower],
+        budgetSteps[index === 0 ? Math.min(value, upper, budgetSteps.length - 2) : lower],
         budgetSteps[index === 1 ? Math.max(value, lower) : upper],
       ),
     );

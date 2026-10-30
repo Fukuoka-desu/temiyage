@@ -21,6 +21,10 @@ class DataTests(unittest.TestCase):
         self.assertIsNone(module.convert({}, 2)['y'])
         self.assertEqual(row['判定'], '確認済み')
 
+    def test_packaging_three_states(self):
+        for raw, expected in [('有', True), ('無', False), ('不明', None), ('', None)]:
+            self.assertIs(module.convert({'個包装': raw, 'タグ': '個包装'}, 1)['ko'], expected)
+
     def test_display_url(self):
         for value in ['', '不明', 'ftp://example.com', 'javascript:alert(1)', 'https://']:
             self.assertEqual(module.display_url(value), '')

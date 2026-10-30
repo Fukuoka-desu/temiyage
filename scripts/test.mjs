@@ -13,6 +13,7 @@ try {
     "marks",
     "score",
     "infer",
+    "display",
     "search",
     "makerNames",
     "drinkKind",
@@ -102,6 +103,8 @@ try {
   await import("../tests/image.test.mjs");
   await import("../tests/filter-accessibility.test.mjs");
   await import("../tests/results-heading.test.mjs");
+  await import("../tests/ux.test.mjs");
+  await import("../tests/display.test.mjs");
 } finally {
   rmSync(out, { recursive: true, force: true });
 }

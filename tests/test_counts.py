@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ITEMS = json.loads((ROOT / 'src/data/items.json').read_text())
 MARKS = json.loads((ROOT / 'src/data/marks.json').read_text())
-DEFAULT = dict(pref='東京', mine='', home='avoid', likes=['甘いもの'], traits=[], rel='',
+DEFAULT = dict(pref='東京', mine='', home='avoid', likes=[], traits=[], rel='',
                nosweet=False, keep=False, pu=False, budget='b1', season='none', use='visit',
                sort='recommend', fpref='', genre='', q='')
 LIKES = {'甘いもの': ['和菓子', '洋菓子', 'チョコ'], '和菓子': ['和菓子'],
@@ -113,7 +113,7 @@ def eligible(c):
             continue
         if c['keep'] and known_days(i) is not None and known_days(i) < 7:
             continue
-        if c['likes'] and not any(likes(i, k, tags) for k in c['likes']):
+        if not c['q'].strip() and c['likes'] and not any(likes(i, k, tags) for k in c['likes']):
             continue
         if c['fpref'] and c['fpref'] != i['p']:
             continue
