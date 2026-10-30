@@ -23,3 +23,12 @@ export function storageLabel(item: Item) {
   if (raw && raw !== "不明") return raw;
   return item.st && item.st !== "不明" ? item.st : "保存方法は不明（購入前にご確認ください）";
 }
+
+// Keep the card brief; the detail dialog retains every caution.
+export function cardCautionText(item: Pick<Item, "v" | "y">, cautions: string[]) {
+  const notes = [
+    ...(!item.v || item.y === null ? ["価格・販売状況は購入前に販売元へご確認ください"] : []),
+    ...cautions,
+  ].filter(note => note.trim());
+  return notes.length ? `注意：${notes[0]}${notes.length > 1 ? "・ほか" : ""}` : "";
+}

@@ -17,3 +17,17 @@ it("都道府県の接尾辞を重ねず、保存方法不明を案内する", (
   assert.equal(storageLabel({ st: "", sr: "常温" }), "常温");
   assert.equal(storageLabel({ st: "要冷蔵", sr: "要冷蔵・10℃以下" }), "要冷蔵・10℃以下");
 });
+
+it("カード注意は空欄・1件・複数件・価格未確認を1つの要約にする", async () => {
+  const { cardCautionText } = await import("../.test-build/display.js");
+  const item = { v: true, y: 1000 };
+  assert.equal(cardCautionText(item, []), "");
+  assert.equal(cardCautionText(item, ["冷蔵"]), "注意：冷蔵");
+  const notes = ["冷蔵", "日持ちが短い"];
+  assert.equal(cardCautionText(item, notes), "注意：冷蔵・ほか");
+  assert.deepEqual(notes, ["冷蔵", "日持ちが短い"]);
+  for (const unknown of [{ v: false, y: 1000 }, { v: true, y: null }]) {
+    assert.equal(cardCautionText(unknown, []), "注意：価格・販売状況は購入前に販売元へご確認ください");
+    assert.equal(cardCautionText(unknown, notes), "注意：価格・販売状況は購入前に販売元へご確認ください・ほか");
+  }
+});

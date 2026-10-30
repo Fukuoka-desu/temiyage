@@ -1477,7 +1477,7 @@ input[type="checkbox"] {
 .photo-placeholder .artwork { height: 100%; }
 .photo-placeholder > span { position: absolute; bottom: 12px; left: 0; right: 0; text-align: center; font-size: 12px; color: #665842; }
 .card-grid { align-items: stretch; }
-.item-card { height: 100%; }
+.item-card { height: auto; }
 .card-open-title { font: inherit; text-align: left; padding: 0; border: 0; background: transparent; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .card-title h3 { min-height: 0; }
 .card-link button { width: 100%; min-height: 36px; color: var(--accent); }
@@ -1538,7 +1538,7 @@ body:has(dialog[open]) { overflow: hidden; }
 .budget-heading output { font-size: 13px; }
 .detail-marks { margin: 24px 0; }
 .detail-marks h3 { margin-bottom: 10px; }
-.card-content > .mark-tags:empty { display: none; }
+
 @media (max-width: 640px) {
   .header h1 { display: none; }
   .card-content { padding: 12px 14px; }
@@ -1554,4 +1554,81 @@ body:has(dialog[open]) { overflow: hidden; }
   .reasons p { line-height: 1.6; }
   .caution-note { padding: 6px; line-height: 1.5; }
   .card-link { padding-top: 10px; }
+}
+
+/* Reserve every card field independently of content and grid neighbours. */
+.card-grid { align-items: start; }
+.item-card .card-content {
+  flex: none;
+  display: grid;
+  grid-template-rows: 18px 106px 18px 100px 18px 74px 20px 66px;
+  gap: 4px;
+}
+.card-content > * { min-width: 0; min-height: 0; margin: 0; overflow: hidden; }
+.card-content .verified-note,
+.card-content .item-genre,
+.card-content .maker,
+.card-content .quantity,
+.card-content .shelf-note,
+.card-content .card-link small {
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-content .item-genre { flex-wrap: nowrap; height: 18px; }
+.card-content .rank { flex-shrink: 0; }
+.card-content .card-title { display: grid; grid-template-rows: 18px 62px 18px; gap: 4px; }
+.card-content .card-title h3 { margin: 0; height: 62px; line-height: 31px; }
+.card-content .card-open-title { width: 100%; }
+.card-content .maker { margin: 0; }
+.card-content .price-specs { display: grid; grid-template-rows: 66px 30px; align-items: start; gap: 4px; }
+/* Reserve the measured strong height plus the 18px note and 2px spacing. */
+.card-content .price { display: grid; grid-template-rows: 46px 18px; gap: 2px; height: 66px; overflow: visible; }
+.card-content .price strong { display: block; height: 46px; line-height: 46px; white-space: nowrap; }
+.card-content .price strong span { line-height: 1; }
+.card-content .price small { margin: 0; line-height: 18px; white-space: nowrap; }
+.card-content .specs { height: 30px; margin: 0; flex-wrap: nowrap; overflow: hidden; }
+.card-content .specs > span { white-space: nowrap; flex-shrink: 0; line-height: 18px; padding: 4px 7px; }
+.card-content .reasons { display: grid; grid-template-rows: 25px 40px; gap: 2px; padding-top: 4px; }
+.card-content .reasons h4 { margin: 0; }
+.card-content .reasons p { font-size: 13px; line-height: 20px; }
+.card-content .reasons-empty { visibility: hidden; }
+.card-content .reasons p {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-content .card-caution {
+  height: 20px;
+  font-size: 13px;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #70501c;
+}
+.card-content .card-link { padding-top: 8px; }
+.card-content .card-link button { height: 36px; padding: 0 8px; }
+.card-content .card-link small { margin-top: 4px; }
+
+.mobile-bottom {
+  transform: translateY(100%);
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 180ms ease;
+}
+.mobile-bottom.is-visible { transform: translateY(0); visibility: visible; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .mobile-bottom { transition: none; }
+}
+@media (max-width: 640px) {
+  .item-card .card-content { grid-template-rows: 18px 106px 18px 107px 18px 74px 20px 66px; }
+  .card-content .price-specs { grid-template-rows: 73px 30px; }
+  .card-content .price { grid-template-rows: 53px 18px; height: 73px; }
+  .card-content .price strong { height: 53px; line-height: 53px; }
+  .filter-selects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; }
+  .filter-selects .sort-label { grid-column: 1 / -1; }
+  .filter-box select { font-size: 13px; padding-left: 8px; padding-right: 22px; }
 }

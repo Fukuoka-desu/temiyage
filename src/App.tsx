@@ -1,4 +1,4 @@
-import { shelfLabel, shopShelfText } from "./lib/display";
+import { shelfLabel, shopShelfText, cardCautionText } from "./lib/display";
 import { ItemDetail, packagingLabel } from "./ItemDetail";
 import { BudgetRange } from "./BudgetRange";
 import { ItemImage } from "./ItemImage";
@@ -7,11 +7,8 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import data from "./data/items.json";
 import { Emblem, Flower, Icon } from "./Artwork";
 import {
-  itemMarks,
-  markLabels,
   traitGroups,
   traitLabels,
-  type Mark,
 } from "./lib/marks";
 import {
   budgetText,
@@ -68,6 +65,7 @@ function App() {
     else { writeItemId(null); setItemId(null); }
   }
   const [panel, setPanel] = useState("");
+  const [bottomReady, setBottomReady] = useState(false);
   const conditionsRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
   function openPanel(value: string, trigger: HTMLElement) {
@@ -91,6 +89,7 @@ function App() {
   }, []);
   const [toast, setToast] = useState("");
   const [fallback, setFallback] = useState("");
+  const bottomVisibleNow = bottomReady && !panel && itemId === null && !fallback;
   const dialogRef = useRef<HTMLDialogElement>(null);
   const resultRef = useRef<HTMLElement>(null);
   const fallbackRef = useRef<HTMLInputElement>(null);
@@ -103,6 +102,21 @@ function App() {
     () => (results.length === 0 ? searchSuggestions(items, deferred.q) : []),
     [results.length, deferred.q],
   );
+  useEffect(() => {
+    // Keep the first card unobstructed until it has been read past.
+    const updateBottom = () => {
+      const firstCard = resultRef.current?.querySelector(".item-card");
+      setBottomReady(window.scrollY > window.innerHeight / 2 &&
+        !!firstCard && firstCard.getBoundingClientRect().bottom <= 0);
+    };
+    updateBottom();
+    window.addEventListener("scroll", updateBottom, { passive: true });
+    window.addEventListener("resize", updateBottom);
+    return () => {
+      window.removeEventListener("scroll", updateBottom);
+      window.removeEventListener("resize", updateBottom);
+    };
+  }, [results]);
   const quickRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     quickRef.current
@@ -341,7 +355,7 @@ function App() {
           >
             <div className="dialog-heading">
               <h2 id="condition-title">贈る相手に合わせる</h2>
-              <button onClick={closePanel} aria-label="条件パネルを閉じる">
+              <button type="button" onClick={closePanel} aria-label="閉じる">
                 ×
               </button>
             </div>
@@ -680,9 +694,7 @@ function App() {
                           </div>
                         </div>
                         <div className="card-content">
-                          {i.v && i.y !== null && (
-                            <span className="verified-note">価格確認済み</span>
-                          )}
+                          <span className="verified-note">{i.v && i.y !== null ? "価格確認済み" : ""}</span>
                           <div className="card-title">
                             <span className="item-genre">
                               {i.g}
@@ -710,42 +722,19 @@ function App() {
                               {i.st && <span className="cold">{i.st}</span>}
                             </div>
                           </div>
-                          {hasShelfDetails(i) && (
-                            <p className="shelf-note" title={i.dr}>
-                              お店の表記：{shopShelfText(i.dr)}
-                            </p>
-                          )}
-                          {(!i.v || i.y === null) && (
-                            <p className="verification-note">
-                              価格・販売状況は購入前に販売元へご確認ください
-                            </p>
-                          )}
-                          {why.some(reason => reason.trim()) && <div className="reasons">
+                          <p className="shelf-note" title={i.dr}>
+                            {hasShelfDetails(i) ? `お店の表記：${shopShelfText(i.dr)}` : ""}
+                          </p>
+                          <div className={`reasons ${why.some(reason => reason.trim()) ? "" : "reasons-empty"}`}>
                             <h4>
                               <Flower />
                               おすすめ理由
                             </h4>
                             <p>{why.filter(reason => reason.trim()).join("・")}</p>
-                          </div>}
-                          <div className="mark-tags" aria-label="品の印">
-                            {(Object.keys(itemMarks[i.id] ?? {}) as Mark[])
-                              .filter((mark) =>
-                                c.traits.includes(mark as never),
-                              )
-                              .map((mark) => (
-                                <span
-                                  key={mark}
-                                  title={itemMarks[i.id]?.[mark]}
-                                >
-                                  {markLabels[mark]}
-                                </span>
-                              ))}
                           </div>
-                          {cautions.map((note) => (
-                            <p className="caution-note" key={note}>
-                              注意：{note}
-                            </p>
-                          ))}
+                          <p className="card-caution" aria-label="注意">
+                            {cardCautionText(i, cautions)}
+                          </p>
                           <div className="card-link">
                             <button onClick={() => openItem(i.id)}>詳しく見る →</button>
                             <small>情報：{i.src === "公式" ? "お店の公式サイト" : i.src === "百貨店" ? "百貨店のサイト" : i.src}（{dateLabel(i.c)}確認）</small>
@@ -838,17 +827,19 @@ function App() {
         <p>大切な人へ、気持ちが伝わるひと品を。</p>
         <small>個人情報・アクセス解析データは収集していません。</small>
       </footer>
-      <nav className="mobile-bottom" aria-label="条件と共有">
+      <nav className={`mobile-bottom ${bottomVisibleNow ? "is-visible" : ""}`} aria-label="条件と共有"
+        ref={(node) => node?.toggleAttribute("inert", !bottomVisibleNow)}>
         <button
           aria-haspopup="dialog"
           aria-controls="condition-dialog"
           aria-expanded={!!panel && !!conditionsRef.current?.open}
+          disabled={!bottomVisibleNow}
           onClick={(e) => openPanel("all", e.currentTarget)}
         >
           <Icon kind="sliders" />
           条件を変える
         </button>
-        <button onClick={share}>
+        <button disabled={!bottomVisibleNow} onClick={share}>
           <Icon kind="share" />
           共有
         </button>
