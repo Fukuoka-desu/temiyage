@@ -174,7 +174,15 @@ const preparedMakerNames = Object.fromEntries(
     [...names.yomi, ...names.en].map(normalize),
   ]),
 );
+const makerVariants = Object.fromEntries(
+  Object.entries(makerNames).map(([maker, names]) => [
+    maker,
+    (names.variants ?? []).map(normalize),
+  ]),
+);
 function makerNameScore(maker: string, word: string) {
+  // 誤記は登録した全表記だけに一致させ、部分一致では広げない。
+  if (makerVariants[maker]?.includes(word)) return weights.m * 0.9;
   if (word.length < 2) return 0;
   // 品名・ジャンル・地名の言い換えは、店名の読みの途中に一致させない。
   const prefixOnly = preparedAliases.some((alias) =>
@@ -194,10 +202,14 @@ const isSake = (item: Item) => drinkKind(item) === "日本酒";
 export function searchScore(item: Item, words: string[]): number | null {
   let total = 0;
   for (const word of words) {
-    let best = makerNameScore(item.m, word);
+    const genreAliases = preparedAliases.filter(
+      (alias) => alias.field === "g" && alias.keys.includes(word),
+    );
+    const genreQuery = genreAliases.length > 0;
+    let best = genreQuery ? 0 : makerNameScore(item.m, word);
     for (const field of Object.keys(weights) as Field[]) {
       // 地方は言い換え経由だけで照合し、「北海道・東北」の混同を防ぐ。
-      if (field === "r") continue;
+      if (field === "r" || (genreQuery && field === "m")) continue;
       // 日本酒だけは、直接一致にも酒の種類の制約を適用する。
       if (word.startsWith(normalize("日本酒")) && !isSake(item)) continue;
       for (const value of field === "t" ? item.t : [item[field]])
@@ -212,7 +224,11 @@ export function searchScore(item: Item, words: string[]): number | null {
         if (!suffix && kind && alias.kinds?.includes(kind))
           best = Math.max(best, weights.g * 0.9);
         for (const value of alias.values) {
-          for (const text of alias.field === "t" ? item.t : [item[alias.field]])
+          for (const text of alias.field === "t"
+            ? item.t
+            : alias.field === "g"
+              ? [item.g, ...item.t]
+              : [item[alias.field]])
             best = Math.max(
               best,
               matchScore(text, value + suffix, alias.field) * 0.9,

@@ -1,7 +1,11 @@
 // 店名の読み・英字表記。公式サイト等で確認できたものだけ。データ(items.json)は変えない
-export const makerNames: Record<string, { yomi: string[]; en: string[] }> = {
+export const makerNames: Record<
+  string,
+  { yomi: string[]; en: string[]; variants?: string[] }
+> = {
   六花亭: {
     yomi: ["ろっかてい"],
+    variants: ["六化亭"],
     en: ["Rokkatei"],
   },
   北菓楼: {
@@ -729,7 +733,7 @@ export const makerNames: Record<string, { yomi: string[]; en: string[] }> = {
     en: [],
   },
   松翁軒: {
-    yomi: [],
+    yomi: ["しょうおうけん"],
     en: ["SHOOKEN"],
   },
   文明堂総本店: {

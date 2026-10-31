@@ -43,6 +43,7 @@ describe("検索", () => {
       ["モロゾフ", ["Morozoff"]],
       ["崎陽軒", ["きようけん"]],
       ["北菓楼", ["きたかろう"]],
+      ["松翁軒", ["しょうおうけん", "ショウオウケン"]],
     ]) {
       for (const q of queries) {
         assert.notEqual(score(item({ m }), q), null, q);
@@ -254,9 +255,11 @@ describe("検索", () => {
     for (const q of ["日本酒", "六花亭", "ようかん", "福岡 羊羹"])
       assert.deepEqual(searchSuggestions(items, q), [], q);
   });
-  it("全品で0件の打ち間違い（六化亭）なら六花亭を出す", () => {
-    assert.equal(score(base, "六化亭"), null);
-    assert.ok(searchSuggestions([base], "六化亭").includes("六花亭"));
+  it("登録した店名の誤記は全表記で検索できる", () => {
+    assert.notEqual(score(base, "六化亭"), null);
+    assert.equal(score(base, "六化"), null);
+    assert.equal(score(item({ m: "別の店" }), "六化亭"), null);
+    assert.deepEqual(searchSuggestions([base], "六化亭"), []);
   });
   it("候補は重複せず最大5語にし、空の検索や近い語がない検索には出さない", () => {
     const suggestions = searchSuggestions([base, base], "六化亭");
@@ -409,4 +412,26 @@ it("地域のrが有効なら県より優先し、無効・欠落時だけ県で
   assert.deepEqual(ids(rows, { farea: "北海道・東北" }), [1, 2, 3, 4]);
   assert.deepEqual(ids(rows, { farea: "関東" }), []);
   assert.deepEqual(ids(rows, { farea: "中国・四国" }), [6, 7]);
+});
+
+it("ジャンルの言い換えはタグも参照し、店名の業種には一致させない", () => {
+  for (const q of ["スイーツ", "お菓子", "甘いもの", "洋菓子"]) {
+    assert.notEqual(
+      score(item({ n: "詰合せ", g: "その他", t: ["洋菓子"] }), q),
+      null,
+    );
+    assert.equal(
+      score(
+        item({
+          n: "チーズスティック",
+          m: "洋菓子専門店",
+          g: "おつまみ",
+          t: ["おつまみ"],
+        }),
+        q,
+      ),
+      null,
+    );
+  }
+  assert.notEqual(score(item({ n: "詰合せ", q: "プリン2個" }), "プリン"), null);
 });
