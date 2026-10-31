@@ -230,7 +230,7 @@ export function scoreItems(
         );
       }
     }
-    if (!c.q.trim() && c.likes.length && hit === 0) continue;
+    if (c.likes.length && hit === 0) continue;
     score += hit * 4;
     if (c.use === "visit") {
       if (has("個包装")) add(2, "個包装で渡しやすい");

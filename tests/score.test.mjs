@@ -121,6 +121,18 @@ describe("スコアと除外条件", () => {
   });
 });
 describe("実データ・表示絞り込み", () => {
+  it("九州を検索してもご飯のお供に合わない菓子を除外する", () => {
+    const c = { ...appDefaults, q: "九州", likes: ["ご飯のお供"] };
+    const unfiltered = filterSort(scoreItems(data, { ...c, likes: [] }), {
+      ...c,
+      likes: [],
+    });
+    expect(unfiltered.some((r) => r.item.n.includes("ふわぴりり"))).toBe(true);
+    const results = filterSort(scoreItems(data, c), c);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.every((r) => r.item.t.includes("ご飯のお供"))).toBe(true);
+    expect(results.some((r) => r.item.n.includes("ふわぴりり"))).toBe(false);
+  });
   it("収録数と欠損値を保持する", () => {
     expect(data.length).toBeGreaterThan(0);
     expect(data.every((i) => typeof i.v === "boolean")).toBe(true);
