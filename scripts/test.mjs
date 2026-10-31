@@ -12,6 +12,7 @@ try {
   for (const file of [
     "imageLoading",
     "marks",
+    "region",
     "score",
     "infer",
     "display",
@@ -91,7 +92,7 @@ try {
     writeFileSync(
       new URL(`${file}.js`, out),
       result.outputText.replace(
-        /(['"])\.\/(?:lib\/)?(infer|score|search|makerNames|drinkKind|marks|Artwork|imageLoading)\1/g,
+        /(['"])\.\/(?:lib\/)?(region|infer|score|search|makerNames|drinkKind|marks|Artwork|imageLoading)\1/g,
         "'./$2.js'",
       ),
     );

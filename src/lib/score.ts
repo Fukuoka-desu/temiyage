@@ -1,3 +1,4 @@
+import { regionOf, regions } from "./region";
 import {
   taste,
   isAlcohol,
@@ -57,7 +58,14 @@ export const budgets = {
 } as const;
 export const budgetSteps = [
   ...Array.from({ length: 61 }, (_, i) => i * 100),
-  7000, 8000, 9000, 10000, 15000, 20000, 30000, Infinity,
+  7000,
+  8000,
+  9000,
+  10000,
+  15000,
+  20000,
+  30000,
+  Infinity,
 ];
 export function budgetRange(c: Conditions): readonly [number, number] {
   return c.bmin === undefined
@@ -118,6 +126,7 @@ export interface Conditions {
   season: keyof typeof seasons;
   use: keyof typeof uses;
   sort: "recommend" | "low" | "high" | "days";
+  farea: string;
   fpref: string;
   genre: string;
   q: string;
@@ -136,6 +145,7 @@ export const defaults: Conditions = {
   season: "none",
   use: "visit",
   sort: "recommend",
+  farea: "",
   fpref: "",
   genre: "",
   q: "",
@@ -333,12 +343,18 @@ export function scoreItems(
       (a.item.y ?? 0) - (b.item.y ?? 0),
   );
 }
-export function filterSort(results: Result[], c: Conditions, failedImages: ReadonlySet<number> = new Set()) {
+export function filterSort(
+  results: Result[],
+  c: Conditions,
+  failedImages: ReadonlySet<number> = new Set(),
+) {
   const words = searchWords(c.q);
   const scores = new Map<Result, number>();
   return results
     .filter((result) => {
       const i = result.item;
+      const region = regions.includes(i.r) ? i.r : regionOf(i.p);
+      if (c.farea && region !== c.farea) return false;
       if ((c.fpref && i.p !== c.fpref) || (c.genre && i.g !== c.genre))
         return false;
       const score = searchScore(i, words);
@@ -355,7 +371,8 @@ export function filterSort(results: Result[], c: Conditions, failedImages: Reado
           : 0) ||
         Number(a.item.y === null) - Number(b.item.y === null) ||
         Number(b.item.v) - Number(a.item.v) ||
-        Number(!a.item.img || failedImages.has(a.item.id)) - Number(!b.item.img || failedImages.has(b.item.id)) ||
+        Number(!a.item.img || failedImages.has(a.item.id)) -
+          Number(!b.item.img || failedImages.has(b.item.id)) ||
         (c.sort === "low"
           ? (a.item.y ?? 0) - (b.item.y ?? 0)
           : c.sort === "high"
@@ -369,6 +386,7 @@ export function filterSort(results: Result[], c: Conditions, failedImages: Reado
 export function relaxationOptions(items: Item[], c: Conditions) {
   const [lo, hi] = budgetRange(c);
   const options: [string, Partial<Conditions>][] = [
+    ["地域の指定を解除", { farea: "", fpref: "" }],
     ["産地の指定を解除", { fpref: "" }],
     ["検索語をクリア", { q: "" }],
     ["ジャンルを解除", { genre: "" }],

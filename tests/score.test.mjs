@@ -305,7 +305,10 @@ it("空白区切りANDはフィールド・入力順を問わず、空白のみ�
 it("緩和案は増えるものだけ実件数付きで返す", () => {
   const c = { ...defaults, fpref: "東京" };
   const options = relaxationOptions([base], c);
-  expect(options.map((o) => o.label)).toEqual(["産地の指定を解除"]);
+  expect(options.map((o) => o.label)).toEqual([
+    "地域の指定を解除",
+    "産地の指定を解除",
+  ]);
   expect(options[0].count).toBe(1);
   expect(relaxationOptions([base], { ...c, q: "存在しない" })).toEqual([]);
 });

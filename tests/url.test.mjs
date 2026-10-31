@@ -4,7 +4,10 @@ import { defaults } from "../.test-build/score.js";
 import { readConditions, writeConditions } from "../.test-build/url.js";
 const read = (search) => {
   vi.stubGlobal("location", { search, pathname: "/gift/", hash: "" });
-  return readConditions(["東京", "大阪", "京都"], ["和菓子", "酒"]);
+  return readConditions(
+    ["東京", "大阪", "京都", "北海道", "青森", "広島", "愛媛"],
+    ["和菓子", "酒"],
+  );
 };
 afterEach(() => vi.unstubAllGlobals());
 describe("共有条件", () => {
@@ -43,6 +46,7 @@ describe("共有条件", () => {
       use: "office",
       season: "chugen",
       sort: "days",
+      farea: "近畿",
       fpref: "大阪",
       genre: "和菓子",
       q: "あいう ＡＢＣ",
@@ -107,4 +111,37 @@ it("anyと価格不明指定を往復し、旧URLと不正値は既定に戻す"
     expect(read(search).pu).toBe(true);
     expect(read(search).budget).toBe(budget);
   }
+});
+
+it("不正な地域は無視し、地域外の産地は解除する", () => {
+  expect(read("?farea=不明").farea).toBe("");
+  expect(read("?farea=関東&fpref=大阪").fpref).toBe("");
+  expect(read("?farea=近畿&fpref=大阪").fpref).toBe("大阪");
+});
+
+it("6地方をURLで往復し、旧区分は無視する", () => {
+  for (const [farea, fpref] of [
+    ["北海道・東北", "北海道"],
+    ["北海道・東北", "青森"],
+    ["関東", "東京"],
+    ["中部", ""],
+    ["近畿", "大阪"],
+    ["中国・四国", "広島"],
+    ["中国・四国", "愛媛"],
+    ["九州・沖縄", ""],
+  ]) {
+    const c = read(`?farea=${farea}&fpref=${fpref}`);
+    expect(c.farea).toBe(farea);
+    expect(c.fpref).toBe(fpref);
+    const replaceState = vi.fn();
+    vi.stubGlobal("history", { replaceState });
+    writeConditions(c);
+    expect(
+      read(
+        new URL(replaceState.mock.calls[0][2], "https://example.com").search,
+      ),
+    ).toEqual(c);
+  }
+  for (const region of ["北海道", "東北", "中国", "四国"])
+    expect(read(`?farea=${region}`).farea).toBe("");
 });

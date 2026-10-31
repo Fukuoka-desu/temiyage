@@ -1,3 +1,4 @@
+import { regionOf, regionPrefs, regions } from "../.test-build/region.js";
 import { drinkKind } from "../.test-build/drinkKind.js";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
@@ -349,4 +350,63 @@ describe("酒の種類とどらの略語", () => {
     const rows = ["ドライケーキ", ...names].map((n, id) => result({ n, id }));
     assert.ok(!ids(rows, { q: "どら" }).includes(0));
   });
+});
+
+it("地域はrを優先して県で補完し、検索・ジャンル・産地とANDで絞る", () => {
+  const rows = [
+    result({ id: 1, p: "福岡", n: "羊羹" }),
+    result({ id: 2, p: "沖縄", n: "羊羹" }),
+    result({ id: 3, p: "北海道", r: "北海道・東北", n: "羊羹" }),
+    result({ id: 4, p: "不明", r: "不明", n: "羊羹" }),
+    result({ id: 5, p: "福岡", n: "別の商品" }),
+    result({ id: 6, p: "沖縄", n: "羊羹", g: "酒" }),
+  ];
+  assert.deepEqual(ids(rows, { farea: "九州・沖縄" }), [1, 2, 5, 6]);
+  assert.deepEqual(
+    ids(rows, { farea: "九州・沖縄", q: "羊羹", genre: "和菓子" }),
+    [1, 2],
+  );
+  assert.deepEqual(
+    ids(rows, {
+      farea: "九州・沖縄",
+      fpref: "福岡",
+      q: "羊羹",
+      genre: "和菓子",
+    }),
+    [1],
+  );
+  assert.deepEqual(ids(rows, { farea: "九州・沖縄", fpref: "北海道" }), []);
+});
+
+it("6地方で47都道府県を重複なく区分し、不明はnullにする", () => {
+  assert.deepEqual(regions, [
+    "北海道・東北",
+    "関東",
+    "中部",
+    "近畿",
+    "中国・四国",
+    "九州・沖縄",
+  ]);
+  const prefs = Object.values(regionPrefs).flat();
+  assert.equal(prefs.length, 47);
+  assert.equal(new Set(prefs).size, 47);
+  for (const [region, prefs] of Object.entries(regionPrefs))
+    for (const pref of prefs) assert.equal(regionOf(pref), region);
+  assert.equal(regionOf("不明"), null);
+  assert.equal(regionOf(""), null);
+});
+
+it("地域のrが有効なら県より優先し、無効・欠落時だけ県で補完する", () => {
+  const rows = [
+    result({ id: 1, p: "東京", r: "北海道・東北" }),
+    result({ id: 2, p: "青森", r: "不明" }),
+    result({ id: 3, p: "北海道", r: undefined }),
+    result({ id: 4, p: "不明", r: "北海道・東北" }),
+    result({ id: 5, p: "不明", r: "" }),
+    result({ id: 6, p: "愛媛", r: "" }),
+    result({ id: 7, p: "広島", r: undefined }),
+  ];
+  assert.deepEqual(ids(rows, { farea: "北海道・東北" }), [1, 2, 3, 4]);
+  assert.deepEqual(ids(rows, { farea: "関東" }), []);
+  assert.deepEqual(ids(rows, { farea: "中国・四国" }), [6, 7]);
 });

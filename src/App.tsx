@@ -1,4 +1,9 @@
-import { createImageGate, priorityImageCount, snapshotImageFailures } from "./lib/imageLoading";
+import { regions, regionOf } from "./lib/region";
+import {
+  createImageGate,
+  priorityImageCount,
+  snapshotImageFailures,
+} from "./lib/imageLoading";
 import { shelfLabel, shopShelfText, cardCautionText } from "./lib/display";
 import { ItemDetail, packagingLabel } from "./ItemDetail";
 import { BudgetRange } from "./BudgetRange";
@@ -7,10 +12,7 @@ import { ItemPrice, dateLabel } from "./ItemPrice";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import data from "./data/items.json";
 import { Emblem, Flower, Icon } from "./Artwork";
-import {
-  traitGroups,
-  traitLabels,
-} from "./lib/marks";
+import { traitGroups, traitLabels } from "./lib/marks";
 import {
   budgetText,
   defaults,
@@ -25,7 +27,12 @@ import {
   type Item,
 } from "./lib/score";
 import { searchSuggestions } from "./lib/search";
-import { readConditions, writeConditions, readItemId, writeItemId } from "./lib/url";
+import {
+  readConditions,
+  writeConditions,
+  readItemId,
+  writeItemId,
+} from "./lib/url";
 const items: Item[] = data;
 const prefectureCount = new Set(items.map((i) => i.p)).size;
 const verifiedCount = items.filter((i) => i.v).length;
@@ -58,12 +65,24 @@ function App() {
   const [c, setC] = useState<Conditions>(() => readConditions(prefs, genres));
   const [itemId, setItemId] = useState(readItemId);
   const pushedItem = useRef(false);
-  const [failedImages, setFailedImages] = useState<ReadonlySet<number>>(new Set());
-  const imageFailure = (id: number) => setFailedImages(old => old.has(id) ? old : new Set([...old, id]));
-  function openItem(id: number) { writeItemId(id, true); pushedItem.current = true; setItemId(id); }
+  const [failedImages, setFailedImages] = useState<ReadonlySet<number>>(
+    new Set(),
+  );
+  const imageFailure = (id: number) =>
+    setFailedImages((old) => (old.has(id) ? old : new Set([...old, id])));
+  function openItem(id: number) {
+    writeItemId(id, true);
+    pushedItem.current = true;
+    setItemId(id);
+  }
   function closeItem() {
-    if (pushedItem.current) { pushedItem.current = false; history.back(); }
-    else { writeItemId(null); setItemId(null); }
+    if (pushedItem.current) {
+      pushedItem.current = false;
+      history.back();
+    } else {
+      writeItemId(null);
+      setItemId(null);
+    }
   }
   const [panel, setPanel] = useState("");
   const [bottomReady, setBottomReady] = useState(false);
@@ -90,22 +109,40 @@ function App() {
   }, []);
   const [toast, setToast] = useState("");
   const [fallback, setFallback] = useState("");
-  const bottomVisibleNow = bottomReady && !panel && itemId === null && !fallback;
+  const bottomVisibleNow =
+    bottomReady && !panel && itemId === null && !fallback;
   const dialogRef = useRef<HTMLDialogElement>(null);
   const resultRef = useRef<HTMLElement>(null);
   const fallbackRef = useRef<HTMLInputElement>(null);
   const [priorityCount] = useState(() => priorityImageCount(window.innerWidth));
   const deferred = useDeferredValue(c);
-  const [failureSnapshot, setFailureSnapshot] = useState(() => ({ conditions: deferred, failedImages }));
-  const sortingSnapshot = snapshotImageFailures(failureSnapshot, deferred, failedImages);
+  const [failureSnapshot, setFailureSnapshot] = useState(() => ({
+    conditions: deferred,
+    failedImages,
+  }));
+  const sortingSnapshot = snapshotImageFailures(
+    failureSnapshot,
+    deferred,
+    failedImages,
+  );
   if (sortingSnapshot !== failureSnapshot) setFailureSnapshot(sortingSnapshot);
   const results = useMemo(
-    () => filterSort(scoreItems(items, deferred), deferred, sortingSnapshot.failedImages),
+    () =>
+      filterSort(
+        scoreItems(items, deferred),
+        deferred,
+        sortingSnapshot.failedImages,
+      ),
     [deferred, sortingSnapshot.failedImages],
   );
-  const [imageGate] = useState(() => createImageGate(
-    results.slice(0, priorityCount).filter(({ item }) => !!item.img).map(({ item }) => item.id),
-  ));
+  const [imageGate] = useState(() =>
+    createImageGate(
+      results
+        .slice(0, priorityCount)
+        .filter(({ item }) => !!item.img)
+        .map(({ item }) => item.id),
+    ),
+  );
   useEffect(() => imageGate.start(), [imageGate]);
   const suggestions = useMemo(
     () => (results.length === 0 ? searchSuggestions(items, deferred.q) : []),
@@ -115,8 +152,11 @@ function App() {
     // Keep the first card unobstructed until it has been read past.
     const updateBottom = () => {
       const firstCard = resultRef.current?.querySelector(".item-card");
-      setBottomReady(window.scrollY > window.innerHeight / 2 &&
-        !!firstCard && firstCard.getBoundingClientRect().bottom <= 0);
+      setBottomReady(
+        window.scrollY > window.innerHeight / 2 &&
+          !!firstCard &&
+          firstCard.getBoundingClientRect().bottom <= 0,
+      );
     };
     updateBottom();
     window.addEventListener("scroll", updateBottom, { passive: true });
@@ -144,6 +184,8 @@ function App() {
   const update = <K extends keyof Conditions>(key: K, value: Conditions[K]) =>
     setC((old) => {
       const next = { ...old, [key]: value };
+      if (key === "farea" && next.farea && regionOf(next.fpref) !== next.farea)
+        next.fpref = "";
       if (key === "budget") {
         delete next.bmin;
         delete next.bmax;
@@ -167,7 +209,10 @@ function App() {
     setLimit(24);
   }, [c]);
   useEffect(() => {
-    const handler = () => { setC(readConditions(prefs, genres)); setItemId(readItemId()); };
+    const handler = () => {
+      setC(readConditions(prefs, genres));
+      setItemId(readItemId());
+    };
     window.addEventListener("popstate", handler);
     return () => window.removeEventListener("popstate", handler);
   }, []);
@@ -318,6 +363,7 @@ function App() {
                       "指定なし",
                   ],
                   ["予算", budgetSummary(c)],
+                  ["地域", c.farea || "すべて"],
                   [
                     "関係",
                     c.rel === "business"
@@ -380,9 +426,7 @@ function App() {
               </summary>
               <div className="condition-body">
                 <section className="form-section section-land">
-                  <h2>
-                    ふたりの土地
-                  </h2>
+                  <h2>ふたりの土地</h2>
                   <label htmlFor="pref">相手の出身地</label>
                   <select
                     id="pref"
@@ -425,9 +469,7 @@ function App() {
                   </div>
                 </section>
                 <section className="form-section section-taste">
-                  <h2>
-                    好みとこだわり
-                  </h2>
+                  <h2>好みとこだわり</h2>
                   <p className="field-help">
                     好みを選択 <span>複数選べます</span>
                   </p>
@@ -539,9 +581,7 @@ function App() {
                   })}
                 </section>
                 <section className="form-section section-occasion">
-                  <h2>
-                    贈る時期と場面
-                  </h2>
+                  <h2>贈る時期と場面</h2>
                   <p className="small-note">
                     時期・用途・関係はそれぞれ1つ選べます。合う品を加点し、保存や贈る場面の注意がある品も候補に残します。
                   </p>
@@ -627,6 +667,19 @@ function App() {
                 />
               </label>
               <div className="filter-selects">
+                <div className="filter-area">
+                  <select
+                    id="farea"
+                    aria-label="地域で絞る"
+                    value={c.farea}
+                    onChange={(e) => update("farea", e.target.value)}
+                  >
+                    <option value="">地域：すべて</option>
+                    {regions.map((region) => (
+                      <option key={region}>{region}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="filter-pref">
                   <select
                     id="fpref"
@@ -635,9 +688,11 @@ function App() {
                     onChange={(e) => update("fpref", e.target.value)}
                   >
                     <option value="">産地：すべて</option>
-                    {prefs.map((p) => (
-                      <option key={p}>{p}</option>
-                    ))}
+                    {prefs
+                      .filter((p) => !c.farea || regionOf(p) === c.farea)
+                      .map((p) => (
+                        <option key={p}>{p}</option>
+                      ))}
                   </select>
                 </div>
                 <div className="genre-filter">
@@ -673,7 +728,8 @@ function App() {
             <div className="result-toolbar">
               <div className="result-count">
                 <p role="status">
-                  全{items.length}品中 <strong>{results.length}</strong>品が条件に合います
+                  全{items.length}品中 <strong>{results.length}</strong>
+                  品が条件に合います
                 </p>
                 <small className="price-note">
                   価格は
@@ -691,7 +747,19 @@ function App() {
                     .map(({ item: i, why, cautions }, index) => (
                       <article className="item-card" key={i.id}>
                         <div className="card-visual">
-                          <button className="card-open-photo" onClick={() => openItem(i.id)} aria-label={`${i.n}の詳細を見る`}><ItemImage item={i} gate={imageGate} priority={index < priorityCount} onFailure={imageFailure} credit={false} /></button>
+                          <button
+                            className="card-open-photo"
+                            onClick={() => openItem(i.id)}
+                            aria-label={`${i.n}の詳細を見る`}
+                          >
+                            <ItemImage
+                              item={i}
+                              gate={imageGate}
+                              priority={index < priorityCount}
+                              onFailure={imageFailure}
+                              credit={false}
+                            />
+                          </button>
                           <div className="card-top">
                             <span className="region">
                               {i.p}
@@ -703,17 +771,24 @@ function App() {
                           </div>
                         </div>
                         <div className="card-content">
-                          <span className="verified-note">{i.v && i.y !== null ? "価格確認済み" : ""}</span>
+                          <span className="verified-note">
+                            {i.v && i.y !== null ? "価格確認済み" : ""}
+                          </span>
                           <div className="card-title">
                             <span className="item-genre">
                               {i.g}
                               {c.sort === "recommend" && index < 3 && (
-                                <span className="rank">
-                                  おすすめ
-                                </span>
+                                <span className="rank">おすすめ</span>
                               )}
                             </span>
-                            <h3><button className="card-open-title" onClick={() => openItem(i.id)}>{i.n}</button></h3>
+                            <h3>
+                              <button
+                                className="card-open-title"
+                                onClick={() => openItem(i.id)}
+                              >
+                                {i.n}
+                              </button>
+                            </h3>
                             <p className="maker">{i.m}</p>
                           </div>
                           <p className="quantity">
@@ -722,31 +797,43 @@ function App() {
                           <div className="price-specs">
                             <ItemPrice item={i} />
                             <div className="specs">
-                              <span>
-                                {shelfLabel(i)}
-                              </span>
-                              <span>
-                                {packagingLabel(i.ko)}
-                              </span>
+                              <span>{shelfLabel(i)}</span>
+                              <span>{packagingLabel(i.ko)}</span>
                               {i.st && <span className="cold">{i.st}</span>}
                             </div>
                           </div>
                           <p className="shelf-note" title={i.dr}>
-                            {hasShelfDetails(i) ? `お店の表記：${shopShelfText(i.dr)}` : ""}
+                            {hasShelfDetails(i)
+                              ? `お店の表記：${shopShelfText(i.dr)}`
+                              : ""}
                           </p>
-                          <div className={`reasons ${why.some(reason => reason.trim()) ? "" : "reasons-empty"}`}>
+                          <div
+                            className={`reasons ${why.some((reason) => reason.trim()) ? "" : "reasons-empty"}`}
+                          >
                             <h4>
                               <Flower />
                               おすすめ理由
                             </h4>
-                            <p>{why.filter(reason => reason.trim()).join("・")}</p>
+                            <p>
+                              {why.filter((reason) => reason.trim()).join("・")}
+                            </p>
                           </div>
                           <p className="card-caution" aria-label="注意">
                             {cardCautionText(i, cautions)}
                           </p>
                           <div className="card-link">
-                            <button onClick={() => openItem(i.id)}>詳しく見る →</button>
-                            <small>情報：{i.src === "公式" ? "お店の公式サイト" : i.src === "百貨店" ? "百貨店のサイト" : i.src}（{dateLabel(i.c)}確認）</small>
+                            <button onClick={() => openItem(i.id)}>
+                              詳しく見る →
+                            </button>
+                            <small>
+                              情報：
+                              {i.src === "公式"
+                                ? "お店の公式サイト"
+                                : i.src === "百貨店"
+                                  ? "百貨店のサイト"
+                                  : i.src}
+                              （{dateLabel(i.c)}確認）
+                            </small>
                           </div>
                         </div>
                       </article>
@@ -769,7 +856,7 @@ function App() {
                 <span aria-hidden="true">◇</span>
                 <h3>ぴったりの品を、もう少し広く。</h3>
                 <p>
-                  いまの条件で候補は0件です。好み・産地・ジャンル・検索語を減らす、日持ち重視を外す、予算を広げると候補が見つかることがあります。
+                  いまの条件で候補は0件です。好み・地域・産地・ジャンル・検索語を減らす、日持ち重視を外す、予算を広げると候補が見つかることがあります。
                 </p>
                 {c.q.trim() && c.q === deferred.q && suggestions.length > 0 && (
                   <div>
@@ -836,8 +923,11 @@ function App() {
         <p>大切な人へ、気持ちが伝わるひと品を。</p>
         <small>個人情報・アクセス解析データは収集していません。</small>
       </footer>
-      <nav className={`mobile-bottom ${bottomVisibleNow ? "is-visible" : ""}`} aria-label="条件と共有"
-        ref={(node) => node?.toggleAttribute("inert", !bottomVisibleNow)}>
+      <nav
+        className={`mobile-bottom ${bottomVisibleNow ? "is-visible" : ""}`}
+        aria-label="条件と共有"
+        ref={(node) => node?.toggleAttribute("inert", !bottomVisibleNow)}
+      >
         <button
           aria-haspopup="dialog"
           aria-controls="condition-dialog"
@@ -853,12 +943,29 @@ function App() {
           共有
         </button>
       </nav>
-      {itemId !== null && (() => {
-        const item = items.find(i => i.id === itemId);
-        if (!item) return null;
-        const result = results.find(r => r.item.id === itemId) ?? scoreItems([item], { ...defaults, pref: "", budget: "any", season: c.season, use: c.use })[0];
-        return result ? <ItemDetail key={itemId} result={result} season={seasons[c.season]} onClose={closeItem} onFailure={imageFailure} /> : null;
-      })()}
+      {itemId !== null &&
+        (() => {
+          const item = items.find((i) => i.id === itemId);
+          if (!item) return null;
+          const result =
+            results.find((r) => r.item.id === itemId) ??
+            scoreItems([item], {
+              ...defaults,
+              pref: "",
+              budget: "any",
+              season: c.season,
+              use: c.use,
+            })[0];
+          return result ? (
+            <ItemDetail
+              key={itemId}
+              result={result}
+              season={seasons[c.season]}
+              onClose={closeItem}
+              onFailure={imageFailure}
+            />
+          ) : null;
+        })()}
       {toast && (
         <div className="toast" role="status">
           ✓ {toast}

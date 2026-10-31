@@ -1,3 +1,4 @@
+import { regions, regionOf } from "./region";
 import { isTrait } from "./marks";
 import {
   defaults,
@@ -18,6 +19,7 @@ export function readConditions(prefs: string[], genres: string[]): Conditions {
       c[key] = v;
   }
   for (const [key, values] of Object.entries({
+    farea: regions,
     home: ["avoid", "nostalgic"],
     rel: ["", "business", "casual"],
     budget: ["b1", "b2", "b3", "b4", "any"],
@@ -29,6 +31,7 @@ export function readConditions(prefs: string[], genres: string[]): Conditions {
     const v = p.get(key);
     if (v !== null && values.includes(v)) Object.assign(c, { [key]: v });
   }
+  if (c.farea && regionOf(c.fpref) !== c.farea) c.fpref = "";
   if (p.get("use") === "first") c.use = "visit";
   for (const key of ["nosweet", "keep", "pu"] as const)
     c[key] = p.get(key) === "1";
@@ -68,6 +71,8 @@ export function readConditions(prefs: string[], genres: string[]): Conditions {
   return c;
 }
 export function writeConditions(c: Conditions) {
+  c = { ...c, farea: regions.includes(c.farea) ? c.farea : "" };
+  if (c.farea && regionOf(c.fpref) !== c.farea) c.fpref = "";
   if (c.budget !== "any" && c.bmin !== undefined)
     c = rangeConditions(c, c.bmin, c.bmax ?? Infinity);
   const p = new URLSearchParams();

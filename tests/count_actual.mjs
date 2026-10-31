@@ -6,6 +6,7 @@ mkdirSync(dir, { recursive: true });
 try {
   for (const name of [
     "marks",
+    "region",
     "drinkKind",
     "makerNames",
     "search",
@@ -29,7 +30,7 @@ try {
         },
       })
       .outputText.replace(
-        /(['"])\.\/(infer|score|search|marks|drinkKind|makerNames)\1/g,
+        /(['"])\.\/(region|infer|score|search|marks|drinkKind|makerNames)\1/g,
         "'./$2.js'",
       );
     writeFileSync(new URL(`${name}.js`, dir), js);

@@ -1214,7 +1214,12 @@ input[type="checkbox"] {
 }
 .filter-selects > div {
   position: relative;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
+}
+.filter-box .filter-selects select {
+  width: 100%;
+  min-width: 0;
 }
 .filter-selects > div::after {
   content: "▾";
@@ -1631,7 +1636,7 @@ body:has(dialog[open]) { overflow: hidden; }
   .card-content .price { grid-template-rows: 53px 18px; height: 73px; }
   .card-content .price strong { height: 53px; line-height: 53px; }
   .filter-selects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; }
-  .filter-selects .sort-label { grid-column: 1 / -1; }
+  .filter-selects .sort-label { grid-column: auto; }
   .filter-box select { font-size: 13px; padding-left: 8px; padding-right: 22px; }
 }
 
