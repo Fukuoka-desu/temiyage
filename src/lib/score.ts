@@ -23,6 +23,8 @@ export interface Item {
   y: number | null;
   d: number | null;
   dr: string;
+  du?: string;
+  ku?: string;
   st: string;
   sr: string;
   ko: boolean | null;

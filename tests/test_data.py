@@ -77,3 +77,43 @@ class DataTests(unittest.TestCase):
                 self.assertEqual(item['imgsrc'], row['出典ページ'])
             else:
                 self.assertNotIn('img', item)
+
+
+class ShelfPackTests(unittest.TestCase):
+    def test_supplements_identity_priority_and_urls(self):
+        import csv
+        import copy
+        from tempfile import TemporaryDirectory
+        items = [module.convert({'品名': '品'}, i) for i in range(1, 9)]
+        items[1].update(d=0, dr='当日', ko=False)
+        items[2]['n'] = '別名'
+        items[3]['ko'] = True
+        before = copy.deepcopy(items)
+        with TemporaryDirectory(dir=Path(__file__).resolve().parents[1]) as directory:
+            path = Path(directory) / 'overrides.csv'
+            self.assertEqual(module.attach_shelf_pack(items, path), dict(shelf=0, pack=0))
+            self.assertEqual(items, before)
+            with path.open('w', encoding='utf-8', newline='') as stream:
+                writer = csv.DictWriter(stream, fieldnames=['id', '品名', '日持ち日数', '日持ち原文', '日持ち根拠URL', '個包装', '個包装根拠URL'])
+                writer.writeheader()
+                for i in range(1, 9):
+                    writer.writerow(dict(id=99 if i == 8 else i, 品名='品',
+                        日持ち日数='' if i == 5 else '不明' if i == 6 else '14',
+                        日持ち原文='製造日より14日',
+                        日持ち根拠URL='javascript:alert(1)' if i == 7 else 'https://example.com/days',
+                        個包装='' if i == 5 else '不明' if i == 6 else '無' if i == 7 else '有',
+                        個包装根拠URL='ftp://example.com' if i == 7 else 'http://example.com/pack'))
+            self.assertEqual(module.attach_shelf_pack(items, path), dict(shelf=3, pack=2))
+        self.assertEqual(items[0]['d'], 14)
+        self.assertEqual(items[0]['dr'], '製造日より14日')
+        self.assertEqual(items[0]['du'], 'https://example.com/days')
+        self.assertIs(items[0]['ko'], True)
+        self.assertEqual(items[0]['ku'], 'http://example.com/pack')
+        for index in [1, 2, 4, 5, 7]:
+            self.assertEqual(items[index], before[index])
+        self.assertIs(items[3]['ko'], True)
+        self.assertNotIn('ku', items[3])
+        self.assertEqual(items[6]['d'], 14)
+        self.assertIs(items[6]['ko'], False)
+        self.assertNotIn('du', items[6])
+        self.assertNotIn('ku', items[6])

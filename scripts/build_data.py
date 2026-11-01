@@ -79,17 +79,47 @@ def attach_images(items, path):
                 item.update(img=image, imgsrc=page)
 
 
+def attach_shelf_pack(items, path):
+    """Supplement unknown fields only when both source identity fields match."""
+    counts = {'shelf': 0, 'pack': 0}
+    if not path.exists():
+        return counts
+    with path.open(encoding='utf-8-sig', newline='') as source:
+        overrides = {(row['id'], row['品名']): row for row in csv.DictReader(source)}
+    for item in items:
+        row = overrides.get((str(item['id']), item['n']))
+        if row is None:
+            continue
+        days = number(row.get('日持ち日数', '') or '')
+        if item['d'] is None and days is not None:
+            item.update(d=days, dr=row.get('日持ち原文', '') or '')
+            url = display_url(row.get('日持ち根拠URL', '') or '')
+            if url:
+                item['du'] = url
+            counts['shelf'] += 1
+        packaging = {'有': True, '無': False}.get(row.get('個包装'))
+        if item['ko'] is None and packaging is not None:
+            item['ko'] = packaging
+            url = display_url(row.get('個包装根拠URL', '') or '')
+            if url:
+                item['ku'] = url
+            counts['pack'] += 1
+    return counts
+
+
 def main():
     from source_csv import source_csv
     source_path = source_csv(sys.argv[1] if len(sys.argv) > 1 else None)
     with source_path.open(encoding='utf-8-sig', newline='') as source:
         items = [convert(row, index) for index, row in enumerate(csv.DictReader(source), 1)]
+    counts = attach_shelf_pack(items, ROOT / "data/source/shelf_pack_overrides.csv")
     attach_images(items, ROOT / "data/images/item_images.csv")
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(
         json.dumps(items, ensure_ascii=False, separators=(',', ':')) + '\n',
         encoding='utf-8',
     )
+    print(f'Supplements: shelf={counts["shelf"]}, pack={counts["pack"]}')
     print(f'{len(items)} items, {sum(item["v"] for item in items)} verified -> {OUTPUT}')
 
 
